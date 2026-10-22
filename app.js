@@ -1,6 +1,5 @@
 const { useState, useEffect } = React;
 
-// ───────── ИКОНКИ ─────────
 const Icons = {
     Sun: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>,
     Book: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
@@ -23,7 +22,6 @@ const HABITS_LIST = [
     { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff },
 ];
 
-// ───────── КОМПОНЕНТ ЛОГОТИПА ─────────
 function Logo() {
     return (
         <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -34,7 +32,6 @@ function Logo() {
     );
 }
 
-// ───────── КОМПОНЕНТ УСТАНОВКИ (PWA) ─────────
 function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isIOS, setIsIOS] = useState(false);
@@ -76,28 +73,32 @@ function InstallPrompt() {
     );
 }
 
-// ───────── КОЛЬЦО ЭНЕРГИИ ─────────
-function EnergyRing({ progress, accentColor, gradientColor }) {
-    const radius = 100;
-    const strokeWidth = 14;
+// ───────── КОЛЬЦО ЭНЕРГИИ (с поддержкой размера) ─────────
+function EnergyRing({ progress, accentColor, gradientColor, size = 240, label = "ЭНЕРГИЯ ДНЯ" }) {
+    const [gradientId] = useState(() => `ring-${Math.random().toString(36).slice(2, 9)}`);
+    const strokeWidth = size > 150 ? 14 : 8;
+    const radius = (size - strokeWidth) / 2 - 4;
+    const center = size / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
+    const numberSize = Math.floor(size / 4);
+    const labelSize = size > 150 ? 10 : 7;
 
     return (
-        <div className="ring-container">
-            <svg width="240" height="240" className="ring-svg">
+        <div className="ring-container" style={{ width: size, height: size, margin: 0 }}>
+            <svg width={size} height={size} className="ring-svg">
                 <defs>
-                    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor={accentColor} />
                         <stop offset="100%" stopColor={gradientColor} />
                     </linearGradient>
                 </defs>
-                <circle cx="120" cy="120" r={radius} strokeWidth={strokeWidth} className="ring-bg" />
-                <circle cx="120" cy="120" r={radius} strokeWidth={strokeWidth} stroke="url(#ringGradient)" className="ring-progress" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} />
+                <circle cx={center} cy={center} r={radius} strokeWidth={strokeWidth} className="ring-bg" />
+                <circle cx={center} cy={center} r={radius} strokeWidth={strokeWidth} stroke={`url(#${gradientId})`} className="ring-progress" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} />
             </svg>
             <div className="ring-content">
-                <span className="ring-number">{progress}%</span>
-                <span className="ring-label">ЭНЕРГИЯ ДНЯ</span>
+                <span className="ring-number" style={{ fontSize: numberSize }}>{progress}%</span>
+                {label && <span className="ring-label" style={{ fontSize: labelSize }}>{label}</span>}
             </div>
         </div>
     );
@@ -115,6 +116,14 @@ function getFormattedDate() {
     const now = new Date();
     let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
+}
+function getChallengeDay() {
+    const start = localStorage.getItem('kairos_challenge_start');
+    if (!start) return 1;
+    const startDate = new Date(start);
+    const today = new Date();
+    const diff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    return Math.min(Math.max(diff, 1), 21);
 }
 
 // ───────── ЭКРАНЫ ОНБОРДИНГА ─────────
@@ -177,7 +186,14 @@ function HabitsScreen({ name, onNext }) {
 
 function ReminderScreen({ name, onFinish }) {
     const [time, setTime] = useState(() => localStorage.getItem('kairos_time') || '09:00');
-    const handleFinish = () => { localStorage.setItem('kairos_time', time); localStorage.setItem('kairos_onboarded', 'true'); onFinish(); };
+    const handleFinish = () => {
+        localStorage.setItem('kairos_time', time);
+        localStorage.setItem('kairos_onboarded', 'true');
+        if (!localStorage.getItem('kairos_challenge_start')) {
+            localStorage.setItem('kairos_challenge_start', new Date().toISOString().split('T')[0]);
+        }
+        onFinish();
+    };
     return (
         <div className="content">
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Когда тебе<br/>напомнить, {name}?</h1>
@@ -192,7 +208,7 @@ function ReminderScreen({ name, onFinish }) {
     );
 }
 
-// ───────── ГЛАВНЫЙ ЭКРАН (СЕГОДНЯ) ─────────
+// ───────── ЭКРАН СЕГОДНЯ ─────────
 function TodayScreen({ name, themeData }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
@@ -215,12 +231,12 @@ function TodayScreen({ name, themeData }) {
     const progress = userHabits.length === 0 ? 0 : Math.round((completed.length / userHabits.length) * 100);
 
     return (
-        <div className="content">
+        <div className="content" style={{ paddingBottom: '120px' }}>
             <div className="fade-up" style={{ marginTop: '20px' }}>
                 <span className="date-label">{dateString}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
             </div>
-            <div className="fade-up" style={{animationDelay: '0.1s'}}>
+            <div className="fade-up" style={{animationDelay: '0.1s', display: 'flex', justifyContent: 'center', margin: '40px 0'}}>
                 <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
             <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
@@ -238,7 +254,72 @@ function TodayScreen({ name, themeData }) {
                     );
                 })}
             </div>
-            <div style={{ height: '40px' }}></div>
+        </div>
+    );
+}
+
+// ───────── ЭКРАН ЧЕЛЛЕНДЖЕЙ ─────────
+function ChallengesScreen({ themeData }) {
+    const day = getChallengeDay();
+    const progress = Math.round((day / 21) * 100);
+    const milestones = [3, 7, 21];
+
+    return (
+        <div className="content" style={{ paddingBottom: '120px' }}>
+            <div className="fade-up" style={{ marginTop: '20px' }}>
+                <span className="date-label">ТВОЙ ПУТЬ</span>
+                <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>21 день<br/>ритуала</h1>
+            </div>
+
+            <div className="challenge-card fade-up" style={{animationDelay: '0.1s'}}>
+                <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} size={100} label="" />
+                <div className="challenge-info">
+                    <span className="challenge-title">Активный<br/>челлендж</span>
+                    <span className="challenge-subtitle">День {day} из 21</span>
+                    <span className="challenge-streak">● В ПРОЦЕССЕ</span>
+                </div>
+            </div>
+
+            <span className="milestones-label fade-up" style={{animationDelay: '0.2s'}}>ВЕХИ</span>
+            <div className="milestones fade-up" style={{animationDelay: '0.25s'}}>
+                {milestones.map(m => (
+                    <div key={m} className="milestone-item">
+                        <div className={`milestone-dot ${day >= m ? 'reached' : ''}`} />
+                        <span className="milestone-label">{m} {m === 21 ? 'ДН' : 'ДН'}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+// ───────── ЗАГЛУШКА ПРОФИЛЯ ─────────
+function ProfileScreen({ name }) {
+    return (
+        <div className="content" style={{ paddingBottom: '120px' }}>
+            <div className="fade-up" style={{ marginTop: '20px' }}>
+                <span className="date-label">ПРОФИЛЬ</span>
+                <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{name}</h1>
+            </div>
+            <p className="subtitle fade-up" style={{marginTop: '24px'}}>Скоро здесь появится статистика и настройки.</p>
+        </div>
+    );
+}
+
+// ───────── ТАБ-БАР ─────────
+function TabBar({ active, onChange }) {
+    const tabs = [
+        { id: 'today', symbol: '◐' },
+        { id: 'challenges', symbol: '◇' },
+        { id: 'profile', symbol: '◯' },
+    ];
+    return (
+        <div className="tab-bar">
+            {tabs.map(tab => (
+                <div key={tab.id} className={`tab-item ${active === tab.id ? 'active' : ''}`} onClick={() => onChange(tab.id)}>
+                    {tab.symbol}
+                </div>
+            ))}
         </div>
     );
 }
@@ -246,7 +327,8 @@ function TodayScreen({ name, themeData }) {
 // ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
-    const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
+    const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'app' : 'welcome');
+    const [tab, setTab] = useState('today');
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
     const themeData = window.KAIROS_THEMES[theme];
 
@@ -267,7 +349,7 @@ function App() {
                 <div className="halo-2"></div>
             </div>
 
-            {step !== 'today' && (
+            {step !== 'app' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
                         <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
@@ -278,14 +360,17 @@ function App() {
             {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
             {step === 'name' && <NameScreen onNext={() => { setName(localStorage.getItem('kairos_name')); setStep('habits'); }} />}
             {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
-            {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
-            
-            {step === 'today' && (
+            {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('app')} />}
+
+            {step === 'app' && (
                 <>
                     <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
                         <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
                     </div>
-                    <TodayScreen name={name} themeData={themeData} />
+                    {tab === 'today' && <TodayScreen name={name} themeData={themeData} />}
+                    {tab === 'challenges' && <ChallengesScreen themeData={themeData} />}
+                    {tab === 'profile' && <ProfileScreen name={name} />}
+                    <TabBar active={tab} onChange={setTab} />
                 </>
             )}
         </div>
