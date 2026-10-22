@@ -32,7 +32,6 @@ function Logo({ size = 40 }) {
     );
 }
 
-// ───────── ГЛОБАЛЬНАЯ ШАПКА ─────────
 function GlobalHeader() {
     return (
         <div className="app-header fade-up">
@@ -42,7 +41,6 @@ function GlobalHeader() {
     );
 }
 
-// ───────── УСТАНОВКА (ТОЛЬКО МОБИЛЬНЫЕ) ─────────
 function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isIOS, setIsIOS] = useState(false);
@@ -51,13 +49,14 @@ function InstallPrompt() {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Проверяем, мобильное ли устройство
-        const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        setIsMobile(mobileCheck);
+        // Жесткая проверка: является ли устройство мобильным (сенсорный экран + мобильный UserAgent)
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+        setIsMobile(isMobileDevice);
 
         if (window.matchMedia('(display-mode: standalone)').matches) setIsStandalone(true);
         const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         setIsIOS(isIOSDevice);
+        
         const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -72,7 +71,7 @@ function InstallPrompt() {
         }
     };
 
-    // Если это компьютер, или уже установлено — ничего не показываем
+    // Если это ПК, приложение уже установлено, или нет промпта — ничего не рендерим
     if (!isMobile || isStandalone || (!deferredPrompt && !isIOS)) return null;
 
     return (
@@ -151,7 +150,6 @@ function calculateStreak() {
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            {/* Здесь оставляем большой лого-блок, так как это первый экран */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '56px' }} className="fade-up">
                 <Logo size={48} />
                 <span style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: '600', letterSpacing: '6px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>KAIROS</span>
@@ -223,16 +221,27 @@ function ReminderScreen({ name, onFinish }) {
     );
 }
 
+// ───────── РЕФЛЕКСИЯ ─────────
 function ReflectionScreen({ onSave, onCancel }) {
-    const [mood, setMood] = useState(null);
-    const [note, setNote] = useState('');
+    const todayKey = new Date().toISOString().split('T')[0];
+    
+    // Подгружаем сохраненные данные при открытии
+    const [mood, setMood] = useState(() => {
+        const saved = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || 'null');
+        return saved ? saved.mood : null;
+    });
+    const [note, setNote] = useState(() => {
+        const saved = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || 'null');
+        return saved ? saved.note : '';
+    });
+
     const handleSave = () => {
         if (mood) {
-            const todayKey = new Date().toISOString().split('T')[0];
             localStorage.setItem(`kairos_reflection_${todayKey}`, JSON.stringify({ mood, note }));
             onSave();
         }
     };
+
     return (
         <div className="content">
             <button onClick={onCancel} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start', marginBottom: '20px' }}>← Назад</button>
@@ -251,19 +260,25 @@ function ReflectionScreen({ onSave, onCancel }) {
     );
 }
 
+// ───────── СЕГОДНЯ ─────────
 function TodayScreen({ name, themeData, onOpenReflection }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
+    const todayKey = new Date().toISOString().split('T')[0];
+    
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
     const userHabits = HABITS_LIST.filter(h => userHabitsIds.includes(h.id));
-    const [completed, setCompleted] = useState(() => JSON.parse(localStorage.getItem(`kairos_checkins_${new Date().toISOString().split('T')[0]}`) || '[]'));
+    const [completed, setCompleted] = useState(() => JSON.parse(localStorage.getItem(`kairos_checkins_${todayKey}`) || '[]'));
+
+    // Проверяем, есть ли уже рефлексия за сегодня
+    const existingReflection = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || 'null');
 
     const toggleCheckin = (id) => {
         let newCompleted;
         if (completed.includes(id)) newCompleted = completed.filter(h => h !== id);
         else newCompleted = [...completed, id];
         setCompleted(newCompleted);
-        localStorage.setItem(`kairos_checkins_${new Date().toISOString().split('T')[0]}`, JSON.stringify(newCompleted));
+        localStorage.setItem(`kairos_checkins_${todayKey}`, JSON.stringify(newCompleted));
     };
 
     const progress = userHabits.length === 0 ? 0 : Math.round((completed.length / userHabits.length) * 100);
@@ -295,8 +310,19 @@ function TodayScreen({ name, themeData, onOpenReflection }) {
                     );
                 })}
             </div>
+            
+            {/* Кнопка рефлексии с обратной связью */}
             <div className="fade-up" style={{animationDelay: '0.3s', marginTop: '16px'}}>
-                <button className="btn-ghost" onClick={onOpenReflection}>Вечерняя рефлексия</button>
+                <button 
+                    className="btn-ghost" 
+                    onClick={onOpenReflection}
+                    style={{ 
+                        borderColor: existingReflection ? 'var(--accent)' : 'var(--stroke)',
+                        color: existingReflection ? 'var(--accent)' : 'var(--text)'
+                    }}
+                >
+                    {existingReflection ? 'Рефлексия завершена ✓' : 'Вечерняя рефлексия'}
+                </button>
             </div>
             <div style={{ height: '80px' }}></div>
         </div>
@@ -339,7 +365,6 @@ function App() {
                 <div className="halo-2"></div>
             </div>
 
-            {/* Показываем глобальную шапку с логотипом на всех экранах, КРОМЕ Welcome */}
             {step !== 'welcome' && <GlobalHeader />}
 
             {step !== 'today' && step !== 'reflection' && (
@@ -353,8 +378,9 @@ function App() {
             {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
             {step === 'name' && <NameScreen onNext={() => { setName(localStorage.getItem('kairos_name')); setStep('habits'); }} />}
             {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
-            {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
-            {step === 'reflection' && <ReflectionScreen onSave={() => setStep('today')} onCancel={() => setStep('today')} />}
+            {step === 'reminder' && <ReminderScreen name={name} onFinish={() => { setStep('today'); setActiveTab('today'); }} />}
+            
+            {step === 'reflection' && <ReflectionScreen onSave={() => { setStep('today'); }} onCancel={() => setStep('today')} />}
             
             {step === 'today' && (
                 <>
