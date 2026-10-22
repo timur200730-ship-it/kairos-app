@@ -246,7 +246,29 @@ function TodayScreen({ name, themeData, onReflect }) {
                 })}
             </div>
 
-            <button className="ghost-btn fade-up" style={{animationDelay: '0.3s', marginTop: '24px'}} onClick={onReflect}>
+            {/* Жесткие inline-стили для кнопки, чтобы Safari не делал её белой */}
+            <button 
+                className="fade-up" 
+                style={{
+                    animationDelay: '0.3s', 
+                    marginTop: '24px',
+                    width: '100%',
+                    height: '56px',
+                    backgroundColor: 'transparent',
+                    border: '1px solid var(--stroke)',
+                    color: hasReflected ? 'var(--accent)' : 'var(--text)',
+                    borderRadius: '99px',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    outline: 'none',
+                    WebkitAppearance: 'none'
+                }}
+                onClick={onReflect}
+            >
                 {hasReflected ? 'Рефлексия пройдена ✓' : 'Вечерняя рефлексия'}
             </button>
             
