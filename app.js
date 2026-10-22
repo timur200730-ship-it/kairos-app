@@ -60,7 +60,6 @@ function MentorNote({ userHabits, completed, name }) {
     else { if (isNothingDone) message = `${name}, день подходит к концу. Если не успел — это нормально. Завтра будет новый шанс.`; else message = `${name}, вечер — время замедлиться. Поблагодари себя за то, что нашёл силы сегодня.`; }
     return (<div className="fade-up mentor-note" style={{animationDelay: '0.15s'}}><div className="mentor-icon">◇</div><p className="mentor-text">{message}</p></div>);
 }
-
 function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
     const greeting = getGreeting(); const dateString = getFormattedDate();
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
@@ -99,11 +98,24 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                         <div key={habit.id} className={`habit-row ${isDone ? 'completed' : ''}`} onClick={() => toggleCheckin(habit)} onMouseDown={handlePressIn} onMouseUp={handlePressOut} onMouseLeave={handlePressOut} onTouchStart={handlePressIn} onTouchEnd={handlePressOut}>
                             <div className="habit-row-left">
                                 <div className="habit-row-icon"><habit.icon /></div>
-                                <span className="habit-row-title">{habit.label}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span className="habit-row-title">{habit.label}</span>
+                                    {habit.type === 'counter' && (
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.3px' }}>
+                                            по 250 мл · {habit.target} стаканов
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                {habit.type === 'counter' && (<span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>{currentVal} / {habit.target} {habit.unit}</span>)}
-                                <div className={`habit-check ${isDone ? 'checked' : ''}`}>{isDone && <Icons.Check />}</div>
+                                {habit.type === 'counter' && (
+                                    <span style={{ fontSize: '15px', color: isDone ? 'var(--accent)' : 'var(--text-muted)', fontWeight: '600', minWidth: '32px', textAlign: 'right' }}>
+                                        {currentVal}/{habit.target}
+                                    </span>
+                                )}
+                                <div className={`habit-check ${isDone ? 'checked' : ''}`}>
+                                    {isDone && <Icons.Check />}
+                                </div>
                                 <div onClick={(e) => { e.stopPropagation(); onOpenHabit(habit); }} style={{ color: 'var(--text-muted)', cursor: 'pointer', padding: '0 4px', fontSize: '18px', opacity: 0.6 }}>›</div>
                             </div>
                         </div>
