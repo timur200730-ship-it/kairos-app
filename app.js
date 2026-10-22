@@ -1,76 +1,4 @@
 const { useState, useEffect } = React;
-// ───────── ЛОГИКА УСТАНОВКИ (PWA) ─────────
-function InstallPrompt() {
-    const [deferredPrompt, setDeferredPrompt] = useState(null);
-    const [isIOS, setIsIOS] = useState(false);
-    const [showIOSHint, setShowIOSHint] = useState(false);
-    const [isStandalone, setIsStandalone] = useState(false);
-
-    useEffect(() => {
-        // Проверяем, не открыто ли уже как приложение
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            setIsStandalone(true);
-        }
-
-        // iOS детектор
-        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        setIsIOS(isIOSDevice);
-
-        // Android / Windows детектор
-        const handler = (e) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-        };
-        window.addEventListener('beforeinstallprompt', handler);
-        return () => window.removeEventListener('beforeinstallprompt', handler);
-    }, []);
-
-    const handleInstallClick = async () => {
-        if (isIOS) {
-            setShowIOSHint(!showIOSHint);
-            return;
-        }
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') setDeferredPrompt(null);
-        }
-    };
-
-    // Если уже установлено или нечего предлагать (на десктопе) - не показываем
-    if (isStandalone || (!deferredPrompt && !isIOS)) return null;
-
-    return (
-        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100 }}>
-            <button 
-                onClick={handleInstallClick}
-                style={{
-                    background: 'var(--surface)', border: '1px solid var(--stroke)', 
-                    color: 'var(--text)', borderRadius: '99px', padding: '8px 16px',
-                    fontSize: '12px', fontWeight: '600', cursor: 'pointer',
-                    backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '6px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}
-            >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Установить
-            </button>
-
-            {/* Подсказка для iOS */}
-            {showIOSHint && (
-                <div style={{
-                    position: 'absolute', top: '50px', right: '0', width: '220px',
-                    background: 'var(--surface)', border: '1px solid var(--stroke)',
-                    padding: '12px', borderRadius: '16px', fontSize: '12px',
-                    color: 'var(--text-muted)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                    animation: 'fadeUp 0.3s ease'
-                }}>
-                    Нажмите <strong style={{color: 'var(--text)'}}>Поделиться</strong> внизу экрана, затем выберите <strong style={{color: 'var(--text)'}}>«На экран "Домой"»</strong>.
-                </div>
-            )}
-        </div>
-    );
-}
 
 // ───────── ИКОНКИ ─────────
 const Icons = {
@@ -95,6 +23,7 @@ const HABITS_LIST = [
     { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff },
 ];
 
+// ───────── КОМПОНЕНТ ЛОГОТИПА ─────────
 function Logo() {
     return (
         <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -105,12 +34,53 @@ function Logo() {
     );
 }
 
-// ───────── КОЛЬЦО ЭНЕРГИИ (SVG) ─────────
+// ───────── КОМПОНЕНТ УСТАНОВКИ (PWA) ─────────
+function InstallPrompt() {
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [isIOS, setIsIOS] = useState(false);
+    const [showIOSHint, setShowIOSHint] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        if (window.matchMedia('(display-mode: standalone)').matches) setIsStandalone(true);
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        setIsIOS(isIOSDevice);
+        const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (isIOS) { setShowIOSHint(!showIOSHint); return; }
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') setDeferredPrompt(null);
+        }
+    };
+
+    if (isStandalone || (!deferredPrompt && !isIOS)) return null;
+
+    return (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100 }}>
+            <button onClick={handleInstallClick} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '99px', padding: '8px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Установить
+            </button>
+            {showIOSHint && (
+                <div style={{ position: 'absolute', top: '50px', right: '0', width: '220px', background: 'var(--surface)', border: '1px solid var(--stroke)', padding: '12px', borderRadius: '16px', fontSize: '12px', color: 'var(--text-muted)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', animation: 'fadeUp 0.3s ease' }}>
+                    Нажмите <strong style={{color: 'var(--text)'}}>Поделиться</strong> внизу экрана, затем выберите <strong style={{color: 'var(--text)'}}>«На экран "Домой"»</strong>.
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ───────── КОЛЬЦО ЭНЕРГИИ ─────────
 function EnergyRing({ progress, accentColor, gradientColor }) {
     const radius = 100;
     const strokeWidth = 14;
     const circumference = 2 * Math.PI * radius;
-    // Если прогресс 0, дуга не рисуется. Если 100, рисуется полный круг.
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
     return (
@@ -122,21 +92,8 @@ function EnergyRing({ progress, accentColor, gradientColor }) {
                         <stop offset="100%" stopColor={gradientColor} />
                     </linearGradient>
                 </defs>
-                {/* Фоновое кольцо */}
-                <circle 
-                    cx="120" cy="120" r={radius} 
-                    strokeWidth={strokeWidth} 
-                    className="ring-bg" 
-                />
-                {/* Прогресс */}
-                <circle 
-                    cx="120" cy="120" r={radius} 
-                    strokeWidth={strokeWidth} 
-                    stroke="url(#ringGradient)"
-                    className="ring-progress"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                />
+                <circle cx="120" cy="120" r={radius} strokeWidth={strokeWidth} className="ring-bg" />
+                <circle cx="120" cy="120" r={radius} strokeWidth={strokeWidth} stroke="url(#ringGradient)" className="ring-progress" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} />
             </svg>
             <div className="ring-content">
                 <span className="ring-number">{progress}%</span>
@@ -169,9 +126,7 @@ function WelcomeScreen({ onStart }) {
                 <span className="brand-name">KAIROS</span>
             </div>
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
-            <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>
-                Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.
-            </p>
+            <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.</p>
             <div style={{ flex: 1 }}></div>
             <button className="btn-primary fade-up" style={{animationDelay: '0.4s'}} onClick={onStart}>Начать</button>
         </div>
@@ -241,12 +196,9 @@ function ReminderScreen({ name, onFinish }) {
 function TodayScreen({ name, themeData }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
-    
-    // Загружаем привычки пользователя
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
     const userHabits = HABITS_LIST.filter(h => userHabitsIds.includes(h.id));
 
-    // Состояние выполненных привычек (сохраняем по дате)
     const [completed, setCompleted] = useState(() => {
         const todayKey = `kairos_checkins_${new Date().toISOString().split('T')[0]}`;
         return JSON.parse(localStorage.getItem(todayKey) || '[]');
@@ -254,14 +206,10 @@ function TodayScreen({ name, themeData }) {
 
     const toggleCheckin = (id) => {
         let newCompleted;
-        if (completed.includes(id)) {
-            newCompleted = completed.filter(h => h !== id);
-        } else {
-            newCompleted = [...completed, id];
-        }
+        if (completed.includes(id)) newCompleted = completed.filter(h => h !== id);
+        else newCompleted = [...completed, id];
         setCompleted(newCompleted);
-        const todayKey = `kairos_checkins_${new Date().toISOString().split('T')[0]}`;
-        localStorage.setItem(todayKey, JSON.stringify(newCompleted));
+        localStorage.setItem(`kairos_checkins_${new Date().toISOString().split('T')[0]}`, JSON.stringify(newCompleted));
     };
 
     const progress = userHabits.length === 0 ? 0 : Math.round((completed.length / userHabits.length) * 100);
@@ -270,15 +218,11 @@ function TodayScreen({ name, themeData }) {
         <div className="content">
             <div className="fade-up" style={{ marginTop: '20px' }}>
                 <span className="date-label">{dateString}</span>
-                <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>
-                    {greeting},<br/>{name}.
-                </h1>
+                <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
             </div>
-            
             <div className="fade-up" style={{animationDelay: '0.1s'}}>
                 <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
-
             <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
                 {userHabits.map(habit => {
                     const Icon = habit.icon;
@@ -304,7 +248,6 @@ function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
-
     const themeData = window.KAIROS_THEMES[theme];
 
     useEffect(() => {
@@ -314,20 +257,11 @@ function App() {
         root.style.setProperty('--halo-1', themeData.halo1);
         root.style.setProperty('--halo-2', themeData.halo2);
         localStorage.setItem('kairos_theme', theme);
-    }, [theme]);
+    }, [theme, themeData]);
 
     return (
         <div className="screen">
-        // ... начало компонента App ...
-    return (
-        <div className="screen">
-            <InstallPrompt /> {/* <--- ВОТ ЭТА СТРОКА */}
-
-            <div className="halo-container">
-                <div className="halo-1"></div>
-                <div className="halo-2"></div>
-            </div>
-// ... остальной код ...
+            <InstallPrompt />
             <div className="halo-container">
                 <div className="halo-1"></div>
                 <div className="halo-2"></div>
@@ -349,12 +283,7 @@ function App() {
             {step === 'today' && (
                 <>
                     <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
-                        <button 
-                            onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')}
-                            style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                            ◐
-                        </button>
+                        <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
                     </div>
                     <TodayScreen name={name} themeData={themeData} />
                 </>
