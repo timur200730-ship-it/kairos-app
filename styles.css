@@ -289,3 +289,16 @@ body {
     -ms-overflow-style: none;  /* Для IE и Edge */
     scrollbar-width: none;     /* Для Firefox */
 }
+/* ───────── ЧЕЛЛЕНДЖИ ───────── */
+.challenge-card {
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.challenge-card:active {
+    transform: scale(0.98);
+}
