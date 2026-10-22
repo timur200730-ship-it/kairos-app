@@ -33,7 +33,62 @@ function Logo() {
     );
 }
 
-// ───────── ЭКРАНЫ ─────────
+// ───────── КОЛЬЦО ЭНЕРГИИ (SVG) ─────────
+function EnergyRing({ progress, accentColor, gradientColor }) {
+    const radius = 100;
+    const strokeWidth = 14;
+    const circumference = 2 * Math.PI * radius;
+    // Если прогресс 0, дуга не рисуется. Если 100, рисуется полный круг.
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+    return (
+        <div className="ring-container">
+            <svg width="240" height="240" className="ring-svg">
+                <defs>
+                    <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor={accentColor} />
+                        <stop offset="100%" stopColor={gradientColor} />
+                    </linearGradient>
+                </defs>
+                {/* Фоновое кольцо */}
+                <circle 
+                    cx="120" cy="120" r={radius} 
+                    strokeWidth={strokeWidth} 
+                    className="ring-bg" 
+                />
+                {/* Прогресс */}
+                <circle 
+                    cx="120" cy="120" r={radius} 
+                    strokeWidth={strokeWidth} 
+                    stroke="url(#ringGradient)"
+                    className="ring-progress"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                />
+            </svg>
+            <div className="ring-content">
+                <span className="ring-number">{progress}%</span>
+                <span className="ring-label">ЭНЕРГИЯ ДНЯ</span>
+            </div>
+        </div>
+    );
+}
+
+// ───────── ХЕЛПЕРЫ ─────────
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Доброе утро';
+    if (hour >= 12 && hour < 18) return 'Добрый день';
+    if (hour >= 18 && hour < 23) return 'Добрый вечер';
+    return 'Доброй ночи';
+}
+function getFormattedDate() {
+    const now = new Date();
+    let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
+}
+
+// ───────── ЭКРАНЫ ОНБОРДИНГА ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
@@ -54,12 +109,7 @@ function WelcomeScreen({ onStart }) {
 function NameScreen({ onNext }) {
     const [name, setName] = useState('');
     const [isFocused, setIsFocused] = useState(false);
-    const handleNext = () => {
-        if (name.trim().length > 0) {
-            localStorage.setItem('kairos_name', name.trim());
-            onNext();
-        }
-    };
+    const handleNext = () => { if (name.trim().length > 0) { localStorage.setItem('kairos_name', name.trim()); onNext(); } };
     return (
         <div className="content">
             <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>Как тебя<br/>зовут?</h1>
@@ -73,20 +123,9 @@ function NameScreen({ onNext }) {
 }
 
 function HabitsScreen({ name, onNext }) {
-    const [selected, setSelected] = useState(() => {
-        const saved = localStorage.getItem('kairos_habits');
-        return saved ? JSON.parse(saved) : [];
-    });
-    const toggleHabit = (id) => {
-        if (selected.includes(id)) setSelected(selected.filter(h => h !== id));
-        else if (selected.length < 3) setSelected([...selected, id]);
-    };
-    const handleNext = () => {
-        if (selected.length > 0) {
-            localStorage.setItem('kairos_habits', JSON.stringify(selected));
-            onNext();
-        }
-    };
+    const [selected, setSelected] = useState(() => { const saved = localStorage.getItem('kairos_habits'); return saved ? JSON.parse(saved) : []; });
+    const toggleHabit = (id) => { if (selected.includes(id)) setSelected(selected.filter(h => h !== id)); else if (selected.length < 3) setSelected([...selected, id]); };
+    const handleNext = () => { if (selected.length > 0) { localStorage.setItem('kairos_habits', JSON.stringify(selected)); onNext(); } };
     return (
         <div className="content">
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Что будешь<br/>развивать, {name}?</h1>
@@ -109,64 +148,51 @@ function HabitsScreen({ name, onNext }) {
     );
 }
 
-// ───────── ЭКРАН 4: ВРЕМЯ НАПОМИНАНИЯ ─────────
 function ReminderScreen({ name, onFinish }) {
     const [time, setTime] = useState(() => localStorage.getItem('kairos_time') || '09:00');
-
-    const handleFinish = () => {
-        localStorage.setItem('kairos_time', time);
-        localStorage.setItem('kairos_onboarded', 'true'); // Флаг завершения онбординга
-        onFinish();
-    };
-
+    const handleFinish = () => { localStorage.setItem('kairos_time', time); localStorage.setItem('kairos_onboarded', 'true'); onFinish(); };
     return (
         <div className="content">
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Когда тебе<br/>напомнить, {name}?</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.1s'}}>Утренний ритуал задаст тон всему дню.</p>
-            
-            {/* Интерактивный селектор времени */}
             <div className="fade-up time-picker-container" style={{animationDelay: '0.2s'}}>
                 <div className="time-display">{time}</div>
-                {/* Нативный input прозрачный, но перекрывает цифры для клика */}
-                <input 
-                    type="time" 
-                    value={time} 
-                    onChange={(e) => setTime(e.target.value)} 
-                    className="time-input-hidden" 
-                />
+                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="time-input-hidden" />
             </div>
-
             <div style={{ flex: 1 }}></div>
-            
-            <button className="btn-primary fade-up" style={{animationDelay: '0.3s'}} onClick={handleFinish}>
-                Готово
-            </button>
+            <button className="btn-primary fade-up" style={{animationDelay: '0.3s'}} onClick={handleFinish}>Готово</button>
         </div>
     );
 }
 
-// ───────── ЭКРАН 5: СЕГОДНЯ (ЗАГЛУШКА) ─────────
-// ───────── ХЕЛПЕРЫ ДЛЯ ДАТЫ И ВРЕМЕНИ ─────────
-function getGreeting() {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'Доброе утро';
-    if (hour >= 12 && hour < 18) return 'Добрый день';
-    if (hour >= 18 && hour < 23) return 'Добрый вечер';
-    return 'Доброй ночи';
-}
-
-function getFormattedDate() {
-    const now = new Date();
-    // Форматируем как "вторник, 22 октября"
-    let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-    // Делаем первую букву заглавной и убираем возможную точку в конце (если есть)
-    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
-}
-
-// ───────── ЭКРАН 5: СЕГОДНЯ ─────────
-function TodayScreen({ name }) {
+// ───────── ГЛАВНЫЙ ЭКРАН (СЕГОДНЯ) ─────────
+function TodayScreen({ name, themeData }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
+    
+    // Загружаем привычки пользователя
+    const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
+    const userHabits = HABITS_LIST.filter(h => userHabitsIds.includes(h.id));
+
+    // Состояние выполненных привычек (сохраняем по дате)
+    const [completed, setCompleted] = useState(() => {
+        const todayKey = `kairos_checkins_${new Date().toISOString().split('T')[0]}`;
+        return JSON.parse(localStorage.getItem(todayKey) || '[]');
+    });
+
+    const toggleCheckin = (id) => {
+        let newCompleted;
+        if (completed.includes(id)) {
+            newCompleted = completed.filter(h => h !== id);
+        } else {
+            newCompleted = [...completed, id];
+        }
+        setCompleted(newCompleted);
+        const todayKey = `kairos_checkins_${new Date().toISOString().split('T')[0]}`;
+        localStorage.setItem(todayKey, JSON.stringify(newCompleted));
+    };
+
+    const progress = userHabits.length === 0 ? 0 : Math.round((completed.length / userHabits.length) * 100);
 
     return (
         <div className="content">
@@ -177,13 +203,26 @@ function TodayScreen({ name }) {
                 </h1>
             </div>
             
-            <div className="fade-up" style={{animationDelay: '0.2s', marginTop: '40px', display: 'flex', justifyContent: 'center'}}>
-                {/* Заглушка для кольца энергии */}
-                <div style={{ width: '220px', height: '220px', borderRadius: '50%', border: '2px dashed var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '64px', lineHeight: '1' }}>0</span>
-                    <span style={{ fontSize: '10px', letterSpacing: '2px', color: 'var(--text-muted)', marginTop: '8px', fontWeight: '600' }}>ЭНЕРГИЯ ДНЯ</span>
-                </div>
+            <div className="fade-up" style={{animationDelay: '0.1s'}}>
+                <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
+
+            <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
+                {userHabits.map(habit => {
+                    const Icon = habit.icon;
+                    const isCompleted = completed.includes(habit.id);
+                    return (
+                        <div key={habit.id} className={`habit-row ${isCompleted ? 'completed' : ''}`} onClick={() => toggleCheckin(habit.id)}>
+                            <div className="habit-row-left">
+                                <div className="habit-row-icon"><Icon /></div>
+                                <span className="habit-row-title">{habit.label}</span>
+                            </div>
+                            <div className="habit-check"></div>
+                        </div>
+                    );
+                })}
+            </div>
+            <div style={{ height: '40px' }}></div>
         </div>
     );
 }
@@ -191,24 +230,19 @@ function TodayScreen({ name }) {
 // ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
-    // Проверяем, проходил ли пользователь онбординг
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
 
+    const themeData = window.KAIROS_THEMES[theme];
+
     useEffect(() => {
-        const t = window.KAIROS_THEMES[theme];
         const root = document.documentElement;
-        root.style.setProperty('--accent', t.accent);
-        root.style.setProperty('--accent-glow', t.glow);
-        root.style.setProperty('--halo-1', t.halo1);
-        root.style.setProperty('--halo-2', t.halo2);
+        root.style.setProperty('--accent', themeData.accent);
+        root.style.setProperty('--accent-glow', themeData.glow);
+        root.style.setProperty('--halo-1', themeData.halo1);
+        root.style.setProperty('--halo-2', themeData.halo2);
         localStorage.setItem('kairos_theme', theme);
     }, [theme]);
-
-    const handleNameNext = () => {
-        setName(localStorage.getItem('kairos_name') || '');
-        setStep('habits');
-    };
 
     return (
         <div className="screen">
@@ -217,7 +251,6 @@ function App() {
                 <div className="halo-2"></div>
             </div>
 
-            {/* Скрываем переключатель тем, когда мы уже в приложении */}
             {step !== 'today' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
@@ -227,10 +260,23 @@ function App() {
             )}
 
             {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
-            {step === 'name' && <NameScreen onNext={handleNameNext} />}
+            {step === 'name' && <NameScreen onNext={() => { setName(localStorage.getItem('kairos_name')); setStep('habits'); }} />}
             {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
             {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
-            {step === 'today' && <TodayScreen name={name} />}
+            
+            {step === 'today' && (
+                <>
+                    <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
+                        <button 
+                            onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')}
+                            style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            ◐
+                        </button>
+                    </div>
+                    <TodayScreen name={name} themeData={themeData} />
+                </>
+            )}
         </div>
     );
 }
