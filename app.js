@@ -246,7 +246,7 @@ function TodayScreen({ name, themeData, onReflect }) {
                 })}
             </div>
 
-            {/* Жесткие inline-стили для кнопки, чтобы Safari не делал её белой */}
+            {/* Кнопка рефлексии с двумя премиальными состояниями */}
             <button 
                 className="fade-up" 
                 style={{
@@ -254,22 +254,26 @@ function TodayScreen({ name, themeData, onReflect }) {
                     marginTop: '24px',
                     width: '100%',
                     height: '56px',
-                    backgroundColor: 'transparent',
-                    border: '1px solid var(--stroke)',
-                    color: hasReflected ? 'var(--accent)' : 'var(--text)',
                     borderRadius: '99px',
                     fontSize: '16px',
-                    fontWeight: '500',
+                    fontWeight: '600',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     outline: 'none',
-                    WebkitAppearance: 'none'
+                    WebkitAppearance: 'none',
+                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    
+                    // Логика стилей: если пройдена - темная с обводкой, если нет - залитая акцентом
+                    backgroundColor: hasReflected ? 'var(--surface)' : 'var(--accent)',
+                    color: hasReflected ? 'var(--accent)' : '#0B0D10',
+                    border: hasReflected ? '1.5px solid var(--accent)' : 'none',
+                    boxShadow: hasReflected ? 'none' : '0 8px 24px var(--accent-glow)'
                 }}
                 onClick={onReflect}
             >
-                {hasReflected ? 'Рефлексия пройдена ✓' : 'Вечерняя рефлексия'}
+                {hasReflected ? '✓ Рефлексия пройдена' : 'Вечерняя рефлексия'}
             </button>
             
             <div style={{ height: '40px' }}></div>
