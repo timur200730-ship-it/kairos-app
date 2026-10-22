@@ -422,3 +422,38 @@ body {
 .settings-row:active {
     background: rgba(255,255,255,0.05);
 }
+/* ───────── СЕТКА КАЛЕНДАРЯ ЧЕЛЛЕНДЖА ───────── */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-top: 32px;
+    margin-bottom: 24px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1.5px solid var(--stroke);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.3s;
+}
+
+/* Выполненный день */
+.calendar-day.completed {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0B0D10;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* Будущие дни (еще не наступили) */
+.calendar-day.future {
+    opacity: 0.3;
+}
