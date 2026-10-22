@@ -362,10 +362,80 @@ function BottomNav({ activeTab, setTab }) {
 }
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
-    const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'app' : 'welcome');
-    const [tab, setTab] = useState('today');
+    const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
+    
+    // НОВОЕ: Состояние для нижнего меню (какая вкладка открыта)
+    const [activeTab, setActiveTab] = useState('today'); 
+    
     const themeData = window.KAIROS_THEMES[theme];
+
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--accent', themeData.accent);
+        root.style.setProperty('--accent-glow', themeData.glow);
+        root.style.setProperty('--halo-1', themeData.halo1);
+        root.style.setProperty('--halo-2', themeData.halo2);
+        localStorage.setItem('kairos_theme', theme);
+    }, [theme, themeData]);
+
+    return (
+        <div className="screen">
+            <InstallPrompt />
+            <div className="halo-container">
+                <div className="halo-1"></div>
+                <div className="halo-2"></div>
+            </div>
+
+            {step !== 'today' && (
+                <div className="theme-switcher">
+                    {Object.keys(window.KAIROS_THEMES).map(key => (
+                        <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
+                    ))}
+                </div>
+            )}
+
+            {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
+            {step === 'name' && <NameScreen onNext={() => { setName(localStorage.getItem('kairos_name')); setStep('habits'); }} />}
+            {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
+            {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
+            
+            {step === 'today' && (
+                <>
+                    {/* Кнопка смены темы (справа сверху) */}
+                    <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
+                        <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
+                    </div>
+                    
+                    {/* Экран "Сегодня" */}
+                    {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} />}
+                    
+                    {/* Заглушка для экрана "Челленджи" */}
+                    {activeTab === 'challenges' && (
+                        <div className="content fade-up">
+                            <h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1>
+                            <p className="subtitle">Здесь будут твои 21-дневные пути.</p>
+                        </div>
+                    )}
+                    
+                    {/* Заглушка для экрана "Профиль" */}
+                    {activeTab === 'profile' && (
+                        <div className="content fade-up">
+                            <h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1>
+                            <p className="subtitle">Здесь будут настройки и статистика.</p>
+                        </div>
+                    )}
+
+                    {/* Вызов нижнего меню */}
+                    <BottomNav activeTab={activeTab} setTab={setActiveTab} />
+                </>
+            )}
+        </div>
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
 
     useEffect(() => {
         const root = document.documentElement;
