@@ -312,3 +312,128 @@ body {
     color: var(--text-muted);
     text-transform: uppercase;
 }
+/* ───────── КОЛЬЦО ЭНЕРГИИ И СПИСОК ПРИВЫЧЕК ───────── */
+.ring-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0;
+}
+
+.ring-svg {
+    transform: rotate(-90deg); /* Начинаем рисовать с верхней точки */
+}
+
+.ring-bg {
+    stroke: var(--stroke);
+    fill: none;
+}
+
+.ring-progress {
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1); /* Плавная анимация */
+}
+
+.ring-content {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ring-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--text);
+}
+
+.ring-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Список привычек */
+.habits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.habit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    padding: 16px 20px;
+    border-radius: 20px;
+    border: 1px solid var(--stroke);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.habit-row:active {
+    transform: scale(0.98);
+}
+
+.habit-row-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.habit-row-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.habit-row-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Кружок-чекбокс */
+.habit-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--stroke);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Состояние "Выполнено" */
+.habit-row.completed .habit-check {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.habit-row.completed .habit-check::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: solid #0B0D10;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    margin-bottom: 2px;
+}
+
+.habit-row.completed .habit-row-icon,
+.habit-row.completed .habit-row-title {
+    color: var(--text-muted); /* Приглушаем выполненное */
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+}
