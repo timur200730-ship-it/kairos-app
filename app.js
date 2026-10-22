@@ -293,7 +293,7 @@ function ReflectionScreen({ onSave, onBack }) {
 
     return (
         <div className="content">
-            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start' }}>
+            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>
                 ← Назад
             </button>
 
@@ -301,10 +301,13 @@ function ReflectionScreen({ onSave, onBack }) {
             
             <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '32px'}}>
                 <div className="mood-grid">
+                    {/* Убрали цифры внутри, оставили только круги */}
                     {[1, 2, 3, 4, 5].map(value => (
-                        <div key={value} className={`mood-circle ${mood === value ? 'selected' : ''}`} onClick={() => setMood(value)}>
-                            {value}
-                        </div>
+                        <div 
+                            key={value} 
+                            className={`mood-circle ${mood === value ? 'selected' : ''}`} 
+                            onClick={() => setMood(value)}
+                        ></div>
                     ))}
                 </div>
                 <div className="mood-label" style={{ opacity: mood > 0 ? 1 : 0 }}>
@@ -313,12 +316,38 @@ function ReflectionScreen({ onSave, onBack }) {
             </div>
 
             <div className="fade-up" style={{animationDelay: '0.2s', marginTop: '16px'}}>
-                <textarea className="note-input" placeholder="Короткая заметка (необязательно)" value={note} onChange={(e) => setNote(e.target.value)} rows={3} />
+                {/* Жесткие стили для textarea, чтобы убрать белый фон */}
+                <textarea 
+                    className="note-input" 
+                    placeholder="Короткая заметка (необязательно)" 
+                    value={note} 
+                    onChange={(e) => setNote(e.target.value)} 
+                    rows={3} 
+                    style={{
+                        width: '100%',
+                        backgroundColor: 'var(--surface)',
+                        border: '1px solid var(--stroke)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        color: 'var(--text)',
+                        fontSize: '15px',
+                        fontFamily: 'Inter, sans-serif',
+                        outline: 'none',
+                        resize: 'none',
+                        boxSizing: 'border-box',
+                        WebkitAppearance: 'none'
+                    }}
+                />
             </div>
 
             <div style={{ flex: 1, minHeight: '40px' }}></div>
             
-            <button className="btn-primary" style={{ opacity: mood > 0 ? 1 : 0.4 }} onClick={handleSave} disabled={mood === 0}>
+            <button 
+                className="btn-primary" 
+                style={{ opacity: mood > 0 ? 1 : 0.4 }} 
+                onClick={handleSave} 
+                disabled={mood === 0}
+            >
                 Сохранить
             </button>
         </div>
