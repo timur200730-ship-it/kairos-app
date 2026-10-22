@@ -33,7 +33,6 @@ function Logo() {
     );
 }
 
-// ───────── УСТАНОВКА ПРИЛОЖЕНИЯ ─────────
 function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isIOS, setIsIOS] = useState(false);
@@ -75,7 +74,6 @@ function InstallPrompt() {
     );
 }
 
-// ───────── КОЛЬЦО ЭНЕРГИИ ─────────
 function EnergyRing({ progress, accentColor, gradientColor }) {
     const radius = 100;
     const strokeWidth = 14;
@@ -116,7 +114,29 @@ function getFormattedDate() {
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
 }
 
-// ───────── ЭКРАНЫ ─────────
+// Функция для подсчета стрика (дней подряд)
+function calculateStreak() {
+    let streak = 0;
+    let d = new Date();
+    while (true) {
+        const dateStr = d.toISOString().split('T')[0];
+        const checkins = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '[]');
+        if (checkins.length > 0) {
+            streak++;
+            d.setDate(d.getDate() - 1);
+        } else {
+            // Если сегодня еще ничего не сделано, проверяем вчерашний день
+            if (streak === 0 && d.toDateString() === new Date().toDateString()) {
+                d.setDate(d.getDate() - 1);
+                continue;
+            }
+            break;
+        }
+    }
+    return streak;
+}
+
+// ───────── ЭКРАНЫ ОНБОРДИНГА ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
@@ -188,7 +208,58 @@ function ReminderScreen({ name, onFinish }) {
     );
 }
 
-function TodayScreen({ name, themeData }) {
+// ───────── ЭКРАН РЕФЛЕКСИИ ─────────
+function ReflectionScreen({ onSave, onCancel }) {
+    const [mood, setMood] = useState(null);
+    const [note, setNote] = useState('');
+
+    const handleSave = () => {
+        if (mood) {
+            const todayKey = new Date().toISOString().split('T')[0];
+            const reflectionData = { mood, note };
+            localStorage.setItem(`kairos_reflection_${todayKey}`, JSON.stringify(reflectionData));
+            onSave();
+        }
+    };
+
+    return (
+        <div className="content">
+            <button onClick={onCancel} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start', marginBottom: '20px' }}>← Назад</button>
+            
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Как прошёл<br/>день?</h1>
+            
+            <div className="reflection-moods fade-up" style={{animationDelay: '0.1s'}}>
+                {[1, 2, 3, 4, 5].map((m) => (
+                    <div key={m} className={`mood-circle ${mood === m ? 'selected' : ''}`} onClick={() => setMood(m)} />
+                ))}
+            </div>
+
+            <div className="fade-up" style={{animationDelay: '0.2s'}}>
+                <input 
+                    type="text" 
+                    className="input-underline" 
+                    placeholder="Одна мысль об этом дне..." 
+                    value={note} 
+                    onChange={(e) => setNote(e.target.value)}
+                />
+            </div>
+
+            <div style={{ flex: 1 }}></div>
+            
+            <button 
+                className="btn-primary fade-up" 
+                style={{animationDelay: '0.3s', opacity: mood ? 1 : 0.4}} 
+                onClick={handleSave} 
+                disabled={!mood}
+            >
+                Сохранить
+            </button>
+        </div>
+    );
+}
+
+// ───────── ЭКРАН СЕГОДНЯ ─────────
+function TodayScreen({ name, themeData, onOpenReflection }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
@@ -208,6 +279,8 @@ function TodayScreen({ name, themeData }) {
     };
 
     const progress = userHabits.length === 0 ? 0 : Math.round((completed.length / userHabits.length) * 100);
+    const streak = calculateStreak();
+    const totalCompleted = completed.length;
 
     return (
         <div className="content">
@@ -215,9 +288,23 @@ function TodayScreen({ name, themeData }) {
                 <span className="date-label">{dateString}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
             </div>
+            
             <div className="fade-up" style={{animationDelay: '0.1s'}}>
                 <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
+
+            {/* Статистика под кольцом */}
+            <div className="stats-row fade-up" style={{animationDelay: '0.15s'}}>
+                <div className="stat-item">
+                    <span className="stat-value">{streak}</span>
+                    <span className="stat-label">Стрик</span>
+                </div>
+                <div className="stat-item">
+                    <span className="stat-value">{totalCompleted}</span>
+                    <span className="stat-label">Выполнено</span>
+                </div>
+            </div>
+
             <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
                 {userHabits.map(habit => {
                     const Icon = habit.icon;
@@ -233,7 +320,14 @@ function TodayScreen({ name, themeData }) {
                     );
                 })}
             </div>
-            {/* Невидимый блок для отступа снизу, чтобы контент не прилипал к меню */}
+
+            {/* Кнопка рефлексии */}
+            <div className="fade-up" style={{animationDelay: '0.3s', marginTop: '16px'}}>
+                <button className="btn-ghost" onClick={onOpenReflection}>
+                    Вечерняя рефлексия
+                </button>
+            </div>
+
             <div style={{ height: '80px' }}></div>
         </div>
     );
@@ -300,7 +394,8 @@ function App() {
                 <div className="halo-2"></div>
             </div>
 
-            {step !== 'today' && (
+            {/* Скрываем меню и переключатель тем на экране рефлексии */}
+            {step !== 'today' && step !== 'reflection' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
                         <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
@@ -313,13 +408,20 @@ function App() {
             {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
             {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
             
+            {step === 'reflection' && (
+                <ReflectionScreen 
+                    onSave={() => setStep('today')} 
+                    onCancel={() => setStep('today')} 
+                />
+            )}
+            
             {step === 'today' && (
                 <>
                     <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
                         <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
                     </div>
                     
-                    {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} />}
+                    {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} onOpenReflection={() => setStep('reflection')} />}
                     {activeTab === 'challenges' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1><p className="subtitle">Здесь будут твои 21-дневные пути.</p></div>}
                     {activeTab === 'profile' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1><p className="subtitle">Здесь будут настройки и статистика.</p></div>}
 
