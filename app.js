@@ -1,46 +1,58 @@
 const { useState, useEffect } = React;
 
-// ───────── ПРЕМИАЛЬНЫЙ ЛОГОТИП ─────────
+// ───────── ИКОНКИ ДЛЯ ПРИВЫЧЕК (Тонкие линии) ─────────
+const Icons = {
+    Sun: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>,
+    Book: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+    Lotus: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 22c-4.97 0-9-4.03-9-9 0-1.66 1.34-3 3-3 1.31 0 2.42.84 2.83 2C9.24 10.17 10.54 9 12 9s2.76 1.17 3.17 3c.41-1.16 1.52-2 2.83-2 1.66 0 3 1.34 3 3 0 4.97-4.03 9-9 9z"/></svg>,
+    Drop: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>,
+    Walk: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M13 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 22l2-6 3 3v5M7 13l3-3 3 3"/></svg>,
+    Pen: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+    Moon: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+    PhoneOff: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.33A19.79 19.79 0 0 1 2 12.18 2 2 0 0 1 4 10h3a2 2 0 0 1 1.95 1.44 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.93 17.63"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+};
+
+const HABITS_LIST = [
+    { id: 'exercise', label: 'Зарядка', icon: Icons.Sun },
+    { id: 'reading', label: 'Чтение', icon: Icons.Book },
+    { id: 'meditation', label: 'Медитация', icon: Icons.Lotus },
+    { id: 'water', label: 'Вода', icon: Icons.Drop },
+    { id: 'walk', label: 'Прогулка', icon: Icons.Walk },
+    { id: 'journal', label: 'Дневник', icon: Icons.Pen },
+    { id: 'sleep', label: 'Сон', icon: Icons.Moon },
+    { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff },
+];
+
+// ───────── ЛОГОТИП ─────────
 function Logo() {
     return (
         <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Тонкое фоновое кольцо */}
             <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="1.5" />
-            {/* Акцентная дуга (прогресс) */}
             <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
-            {/* Точка в центре (символ "сейчас") */}
             <circle cx="50" cy="50" r="4" fill="var(--accent)" />
         </svg>
     );
 }
 
+// ───────── ЭКРАН 1: ПРИВЕТСТВИЕ ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            {/* Бренд-лок: Иконка + Название */}
             <div className="brand-lockup fade-up">
                 <Logo />
                 <span className="brand-name">KAIROS</span>
             </div>
-
-            <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>
-                Ритуал,<br/>а не гонка
-            </h1>
-            
+            <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>
-                Тихая сила ежедневных повторений.<br/>
-                Одна привычка. Один день. Один шаг.
+                Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.
             </p>
-            
             <div style={{ flex: 1 }}></div>
-            
-            <button className="btn-primary fade-up" style={{animationDelay: '0.4s'}} onClick={onStart}>
-                Начать
-            </button>
+            <button className="btn-primary fade-up" style={{animationDelay: '0.4s'}} onClick={onStart}>Начать</button>
         </div>
     );
 }
 
+// ───────── ЭКРАН 2: ВВОД ИМЕНИ ─────────
 function NameScreen({ onNext }) {
     const [name, setName] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -54,30 +66,71 @@ function NameScreen({ onNext }) {
 
     return (
         <div className="content">
-            <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>
-                Как тебя<br/>зовут?
-            </h1>
-            
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>Как тебя<br/>зовут?</h1>
             <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '40px'}}>
-                <input 
-                    type="text" 
-                    className={`input-underline ${isFocused ? 'focused' : ''}`}
-                    placeholder="Твоё имя"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    autoFocus
-                />
+                <input type="text" className={`input-underline ${isFocused ? 'focused' : ''}`} placeholder="Твоё имя" value={name} onChange={(e) => setName(e.target.value)} onFocus={() => setIsFocused(true)} onBlur={() => setIsFocused(false)} autoFocus />
+            </div>
+            <div style={{ flex: 1 }}></div>
+            <button className="btn-primary fade-up" style={{animationDelay: '0.2s', opacity: name.trim().length > 0 ? 1 : 0.4}} onClick={handleNext} disabled={name.trim().length === 0}>Далее</button>
+        </div>
+    );
+}
+
+// ───────── ЭКРАН 3: ВЫБОР ПРИВЫЧЕК ─────────
+function HabitsScreen({ name, onNext }) {
+    const [selected, setSelected] = useState(() => {
+        const saved = localStorage.getItem('kairos_habits');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const toggleHabit = (id) => {
+        if (selected.includes(id)) {
+            setSelected(selected.filter(h => h !== id));
+        } else if (selected.length < 3) {
+            setSelected([...selected, id]);
+        }
+    };
+
+    const handleNext = () => {
+        if (selected.length > 0) {
+            localStorage.setItem('kairos_habits', JSON.stringify(selected));
+            onNext();
+        }
+    };
+
+    return (
+        <div className="content">
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>
+                Что будешь<br/>развивать, {name}?
+            </h1>
+            <p className="subtitle fade-up" style={{animationDelay: '0.1s', marginBottom: '32px'}}>
+                Выбери от 1 до 3 привычек. Начни с малого.
+            </p>
+            
+            <div className="habits-grid fade-up" style={{animationDelay: '0.2s'}}>
+                {HABITS_LIST.map((habit, index) => {
+                    const isSelected = selected.includes(habit.id);
+                    const Icon = habit.icon;
+                    return (
+                        <div 
+                            key={habit.id} 
+                            className={`habit-card ${isSelected ? 'selected' : ''}`}
+                            onClick={() => toggleHabit(habit.id)}
+                        >
+                            <div className="habit-icon"><Icon /></div>
+                            <span className="habit-label">{habit.label}</span>
+                        </div>
+                    );
+                })}
             </div>
 
-            <div style={{ flex: 1 }}></div>
+            <div style={{ flex: 1, minHeight: '24px' }}></div>
             
             <button 
                 className="btn-primary fade-up" 
-                style={{animationDelay: '0.2s', opacity: name.trim().length > 0 ? 1 : 0.4}}
-                onClick={handleNext}
-                disabled={name.trim().length === 0}
+                style={{animationDelay: '0.3s', opacity: selected.length > 0 ? 1 : 0.4}} 
+                onClick={handleNext} 
+                disabled={selected.length === 0}
             >
                 Далее
             </button>
@@ -85,23 +138,26 @@ function NameScreen({ onNext }) {
     );
 }
 
-function HabitsScreen({ name }) {
+// ───────── ЭКРАН 4: ВРЕМЯ (ЗАГЛУШКА) ─────────
+function ReminderScreen({ name }) {
     return (
         <div className="content">
-            <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>
-                Приятно<br/>познакомиться,<br/>{name}
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>
+                Когда тебе<br/>напомнить?
             </h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.1s', marginTop: '24px'}}>
-                Здесь мы будем выбирать привычки...
+                Здесь мы настроим утреннее напоминание для {name}...
             </p>
+            <div style={{ flex: 1 }}></div>
         </div>
     );
 }
 
+// ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState('welcome'); 
-    const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
+    const [name, setName] = useState('');
 
     useEffect(() => {
         const t = window.KAIROS_THEMES[theme];
@@ -127,18 +183,14 @@ function App() {
 
             <div className="theme-switcher">
                 {Object.keys(window.KAIROS_THEMES).map(key => (
-                    <div 
-                        key={key}
-                        className={`theme-dot ${theme === key ? 'active' : ''}`}
-                        style={{ backgroundColor: window.KAIROS_THEMES[key].accent }}
-                        onClick={() => setTheme(key)}
-                    />
+                    <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
                 ))}
             </div>
 
             {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
             {step === 'name' && <NameScreen onNext={handleNameNext} />}
-            {step === 'habits' && <HabitsScreen name={name} />}
+            {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
+            {step === 'reminder' && <ReminderScreen name={name} />}
         </div>
     );
 }
