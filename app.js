@@ -35,7 +35,6 @@ function Logo() {
     );
 }
 
-// ───────── УМЕНЬШЕННЫЙ ЛОГОТИП ДЛЯ ШАПКИ ─────────
 function HeaderLogo() {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
@@ -72,9 +71,7 @@ function InstallPrompt() {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') setDeferredPrompt(null);
-        } else {
-            setShowHint(!showHint);
-        }
+        } else { setShowHint(!showHint); }
     };
 
     if (isStandalone) return null;
@@ -102,7 +99,6 @@ function EnergyRing({ progress, accentColor, gradientColor }) {
     const strokeWidth = 14;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
-
     return (
         <div className="ring-container">
             <svg width="240" height="240" className="ring-svg">
@@ -138,6 +134,19 @@ function getFormattedDate() {
 }
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
+function getChallenges() {
+    return JSON.parse(localStorage.getItem('kairos_challenges') || '[]');
+}
+function saveChallenges(challenges) {
+    localStorage.setItem('kairos_challenges', JSON.stringify(challenges));
+}
+function getDayOfChallenge(startDate) {
+    const start = new Date(startDate).setHours(0,0,0,0);
+    const now = new Date().setHours(0,0,0,0);
+    const diffTime = Math.abs(now - start);
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // День 1 = старт
+}
+
 // ───────── ЭКРАНЫ ОНБОРДИНГА ─────────
 function WelcomeScreen({ onStart }) {
     return (
@@ -170,7 +179,21 @@ function NameScreen({ onNext }) {
 function HabitsScreen({ name, onNext }) {
     const [selected, setSelected] = useState(() => { const saved = localStorage.getItem('kairos_habits'); return saved ? JSON.parse(saved) : []; });
     const toggleHabit = (id) => { if (selected.includes(id)) setSelected(selected.filter(h => h !== id)); else if (selected.length < 3) setSelected([...selected, id]); };
-    const handleNext = () => { if (selected.length > 0) { localStorage.setItem('kairos_habits', JSON.stringify(selected)); onNext(); } };
+    
+    const handleNext = () => { 
+        if (selected.length > 0) { 
+            localStorage.setItem('kairos_habits', JSON.stringify(selected)); 
+            // Создаем первый челлендж автоматически (21 день для первой привычки)
+            const firstHabitId = selected[0];
+            const habit = HABITS_LIST.find(h => h.id === firstHabitId);
+            const existing = getChallenges();
+            if (existing.length === 0) {
+                saveChallenges([{ id: Date.now().toString(), habitId: firstHabitId, title: habit.label, startDate: getTodayKey(), length: 21 }]);
+            }
+            onNext(); 
+        } 
+    };
+
     return (
         <div className="content">
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Что будешь<br/>развивать, {name}?</h1>
@@ -238,7 +261,6 @@ function TodayScreen({ name, themeData, onReflect }) {
     return (
         <div className="content">
             <HeaderLogo />
-
             <div className="fade-up" style={{ marginTop: '0px' }}>
                 <span className="date-label">{dateString}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
@@ -267,20 +289,7 @@ function TodayScreen({ name, themeData, onReflect }) {
             <button 
                 className="fade-up" 
                 style={{
-                    animationDelay: '0.3s', 
-                    marginTop: '24px',
-                    width: '100%',
-                    height: '56px',
-                    borderRadius: '99px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    outline: 'none',
-                    WebkitAppearance: 'none',
-                    transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    animationDelay: '0.3s', marginTop: '24px', width: '100%', height: '56px', borderRadius: '99px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', outline: 'none', WebkitAppearance: 'none', transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                     backgroundColor: hasReflected ? 'var(--surface)' : 'var(--accent)',
                     color: hasReflected ? 'var(--accent)' : '#0B0D10',
                     border: hasReflected ? '1.5px solid var(--accent)' : 'none',
@@ -290,8 +299,127 @@ function TodayScreen({ name, themeData, onReflect }) {
             >
                 {hasReflected ? '✓ Рефлексия пройдена' : 'Вечерняя рефлексия'}
             </button>
-            
             <div style={{ height: '40px' }}></div>
+        </div>
+    );
+}
+
+// ───────── ЭКРАН ЧЕЛЛЕНДЖЕЙ ─────────
+function ChallengesScreen({ onNewChallenge }) {
+    const [challenges, setChallenges] = useState(getChallenges());
+
+    return (
+        <div className="content">
+            <HeaderLogo />
+            <h1 className="title fade-up" style={{ marginTop: '0px', marginBottom: '24px' }}>Твои пути</h1>
+            
+            {challenges.length === 0 ? (
+                <div className="fade-up" style={{ textAlign: 'center', marginTop: '40px', color: 'var(--text-muted)' }}>
+                    <p>Пока нет активных челленджей.</p>
+                </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {challenges.map((challenge, index) => {
+                        const currentDay = Math.min(getDayOfChallenge(challenge.startDate), challenge.length);
+                        const isCompleted = currentDay > challenge.length;
+                        const habit = HABITS_LIST.find(h => h.id === challenge.habitId);
+                        
+                        return (
+                            <div key={challenge.id} className="challenge-card fade-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ color: 'var(--accent)' }}><habit.icon /></div>
+                                        <span style={{ fontSize: '18px', fontWeight: '500' }}>{challenge.title}</span>
+                                    </div>
+                                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                        {isCompleted ? 'Завершен' : `День ${currentDay} из ${challenge.length}`}
+                                    </span>
+                                </div>
+                                
+                                {/* Полоса прогресса */}
+                                <div style={{ height: '6px', background: 'var(--stroke)', borderRadius: '3px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${Math.min((currentDay / challenge.length) * 100, 100)}%`, background: 'var(--accent)', transition: 'width 0.8s ease' }}></div>
+                                </div>
+
+                                {/* Вехи */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
+                                    {[3, 7, 21, 66].map(milestone => {
+                                        if (milestone > challenge.length) return null;
+                                        const isReached = currentDay >= milestone;
+                                        return (
+                                            <div key={milestone} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReached ? 'var(--accent)' : 'var(--stroke)', transition: 'background 0.3s' }}></div>
+                                                <span style={{ fontSize: '10px', color: isReached ? 'var(--accent)' : 'var(--text-muted)' }}>{milestone}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            <div style={{ flex: 1, minHeight: '40px' }}></div>
+            
+            <button className="btn-primary fade-up" style={{ animationDelay: '0.4s' }} onClick={onNewChallenge}>
+                + Новый челлендж
+            </button>
+            <div style={{ height: '40px' }}></div>
+        </div>
+    );
+}
+
+function NewChallengeScreen({ onBack, onCreated }) {
+    const [selectedHabit, setSelectedHabit] = useState(null);
+    const [length, setLength] = useState(21);
+
+    const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
+    const userHabits = HABITS_LIST.filter(h => userHabitsIds.includes(h.id));
+
+    const handleCreate = () => {
+        if (!selectedHabit) return;
+        const habit = HABITS_LIST.find(h => h.id === selectedHabit);
+        const challenges = getChallenges();
+        challenges.push({
+            id: Date.now().toString(),
+            habitId: selectedHabit,
+            title: habit.label,
+            startDate: getTodayKey(),
+            length: length
+        });
+        saveChallenges(challenges);
+        onCreated();
+    };
+
+    return (
+        <div className="content">
+            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>← Назад</button>
+            
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Новый<br/>челлендж</h1>
+            
+            <p className="subtitle fade-up" style={{animationDelay: '0.1s', marginTop: '24px', marginBottom: '16px'}}>Выбери привычку:</p>
+            <div className="habits-grid fade-up" style={{animationDelay: '0.15s'}}>
+                {userHabits.map(habit => (
+                    <div key={habit.id} className={`habit-card ${selectedHabit === habit.id ? 'selected' : ''}`} onClick={() => setSelectedHabit(habit.id)}>
+                        <div className="habit-icon"><habit.icon /></div>
+                        <span className="habit-label">{habit.label}</span>
+                    </div>
+                ))}
+            </div>
+
+            <p className="subtitle fade-up" style={{animationDelay: '0.2s', marginTop: '32px', marginBottom: '16px'}}>Длительность:</p>
+            <div className="fade-up" style={{animationDelay: '0.25s', display: 'flex', gap: '12px'}}>
+                {[7, 21, 66].map(days => (
+                    <button key={days} onClick={() => setLength(days)} style={{ flex: 1, height: '48px', borderRadius: '12px', background: length === days ? 'var(--accent)' : 'var(--surface)', color: length === days ? '#0B0D10' : 'var(--text)', border: '1px solid', borderColor: length === days ? 'var(--accent)' : 'var(--stroke)', fontSize: '14px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s' }}>
+                        {days} дней
+                    </button>
+                ))}
+            </div>
+
+            <div style={{ flex: 1, minHeight: '40px' }}></div>
+            
+            <button className="btn-primary fade-up" style={{ animationDelay: '0.3s', opacity: selectedHabit ? 1 : 0.4 }} onClick={handleCreate} disabled={!selectedHabit}>Создать</button>
         </div>
     );
 }
@@ -300,7 +428,6 @@ function TodayScreen({ name, themeData, onReflect }) {
 function ReflectionScreen({ onSave, onBack }) {
     const todayKey = getTodayKey();
     const savedData = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || '{}');
-    
     const [mood, setMood] = useState(savedData.mood || 0);
     const [note, setNote] = useState(savedData.note || '');
 
@@ -312,12 +439,8 @@ function ReflectionScreen({ onSave, onBack }) {
 
     return (
         <div className="content">
-            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>
-                ← Назад
-            </button>
-
+            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>← Назад</button>
             <HeaderLogo />
-
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Как прошёл<br/>день?</h1>
             
             <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '32px'}}>
@@ -326,24 +449,14 @@ function ReflectionScreen({ onSave, onBack }) {
                         <div key={value} className={`mood-circle ${mood === value ? 'selected' : ''}`} onClick={() => setMood(value)}></div>
                     ))}
                 </div>
-                <div className="mood-label" style={{ opacity: mood > 0 ? 1 : 0 }}>
-                    {MOOD_LABELS[mood] || ''}
-                </div>
+                <div className="mood-label" style={{ opacity: mood > 0 ? 1 : 0 }}>{MOOD_LABELS[mood] || ''}</div>
             </div>
 
             <div className="fade-up" style={{animationDelay: '0.2s', marginTop: '16px'}}>
-                <textarea 
-                    className="note-input" 
-                    placeholder="Короткая заметка (необязательно)" 
-                    value={note} 
-                    onChange={(e) => setNote(e.target.value)} 
-                    rows={3} 
-                    style={{ width: '100%', backgroundColor: 'var(--surface)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', WebkitAppearance: 'none' }}
-                />
+                <textarea className="note-input" placeholder="Короткая заметка (необязательно)" value={note} onChange={(e) => setNote(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: 'var(--surface)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', WebkitAppearance: 'none' }} />
             </div>
 
             <div style={{ flex: 1, minHeight: '40px' }}></div>
-            
             <button className="btn-primary" style={{ opacity: mood > 0 ? 1 : 0.4 }} onClick={handleSave} disabled={mood === 0}>Сохранить</button>
         </div>
     );
@@ -385,7 +498,7 @@ function App() {
             <InstallPrompt />
             <div className="halo-container"><div className="halo-1"></div><div className="halo-2"></div></div>
 
-            {step !== 'today' && step !== 'reflection' && (
+            {step !== 'today' && step !== 'reflection' && step !== 'new-challenge' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
                         <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
@@ -405,14 +518,7 @@ function App() {
                     </div>
                     
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} onReflect={() => setStep('reflection')} />}
-                    
-                    {activeTab === 'challenges' && (
-                        <div className="content fade-up">
-                            <HeaderLogo />
-                            <h1 className="title" style={{ marginTop: '0px' }}>Челленджи</h1>
-                        </div>
-                    )}
-                    
+                    {activeTab === 'challenges' && <ChallengesScreen onNewChallenge={() => setStep('new-challenge')} />}
                     {activeTab === 'profile' && (
                         <div className="content fade-up">
                             <HeaderLogo />
@@ -426,6 +532,7 @@ function App() {
             )}
 
             {step === 'reflection' && <ReflectionScreen onSave={() => setStep('today')} onBack={() => setStep('today')} />}
+            {step === 'new-challenge' && <NewChallengeScreen onBack={() => setStep('today')} onCreated={() => setStep('today')} />}
         </div>
     );
 }
