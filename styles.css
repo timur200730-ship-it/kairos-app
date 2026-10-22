@@ -252,23 +252,16 @@ body {
     height: 52px;
     border-radius: 50%;
     border: 1.5px solid var(--stroke);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', serif; /* Красивый шрифт для цифр */
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: transparent; /* По умолчанию прозрачный */
 }
 
 .mood-circle.selected {
     border-color: var(--accent);
-    background: var(--accent-glow);
-    color: var(--accent);
-    transform: scale(1.1);
+    background: var(--accent); /* Заливается цветом темы */
     box-shadow: 0 0 20px var(--accent-glow);
+    transform: scale(1.1);
 }
 
 .mood-label {
