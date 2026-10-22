@@ -161,3 +161,20 @@ body {
 
 .input-underline::placeholder { color: var(--text-muted); }
 .input-underline.focused { border-bottom-color: var(--accent); }
+/* ───────── БРЕНД-ЛОК (Лого + Название) ───────── */
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 56px; /* Отделяем от заголовка воздухом */
+}
+
+.brand-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 5px; /* Широкий интервал = премиум */
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding-top: 2px; /* Легкая оптическая коррекция */
+}
