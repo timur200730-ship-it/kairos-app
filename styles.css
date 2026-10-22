@@ -240,3 +240,44 @@ body {
 .date-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 
 .nav-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to top, var(--bg) 40%, transparent); z-index: 10; pointer-events: none; }
+/* ───────── ОБНОВЛЕННАЯ РЕФЛЕКСИЯ ───────── */
+.mood-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.mood-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1.5px solid var(--stroke);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif; /* Красивый шрифт для цифр */
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mood-circle.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+    color: var(--accent);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.mood-label {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 1px;
+    transition: opacity 0.3s ease;
+    height: 20px; /* Фиксируем высоту, чтобы верстка не прыгала */
+}
