@@ -302,3 +302,27 @@ body {
 .challenge-card:active {
     transform: scale(0.98);
 }
+/* ───────── ЗАМЕТКА НАСТАВНИКА ───────── */
+.mentor-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 16px 0 24px 0;
+    padding: 0 4px;
+}
+
+.mentor-icon {
+    color: var(--accent);
+    font-size: 16px;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+.mentor-text {
+    font-family: 'Cormorant Garamond', serif; /* Используем наш премиальный шрифт */
+    font-style: italic; /* Наклон для ощущения рукописной заметки */
+    font-size: 17px;
+    line-height: 1.4;
+    color: var(--text-muted);
+    margin: 0;
+}
