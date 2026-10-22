@@ -146,19 +146,42 @@ function ReminderScreen({ name, onFinish }) {
 }
 
 // ───────── ЭКРАН 5: СЕГОДНЯ (ЗАГЛУШКА) ─────────
+// ───────── ХЕЛПЕРЫ ДЛЯ ДАТЫ И ВРЕМЕНИ ─────────
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Доброе утро';
+    if (hour >= 12 && hour < 18) return 'Добрый день';
+    if (hour >= 18 && hour < 23) return 'Добрый вечер';
+    return 'Доброй ночи';
+}
+
+function getFormattedDate() {
+    const now = new Date();
+    // Форматируем как "вторник, 22 октября"
+    let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+    // Делаем первую букву заглавной и убираем возможную точку в конце (если есть)
+    return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
+}
+
+// ───────── ЭКРАН 5: СЕГОДНЯ ─────────
 function TodayScreen({ name }) {
+    const greeting = getGreeting();
+    const dateString = getFormattedDate();
+
     return (
         <div className="content">
             <div className="fade-up" style={{ marginTop: '20px' }}>
-                <span className="date-label">ВТОРНИК, 22 ОКТЯБРЯ</span>
-                <h1 className="title" style={{ fontSize: '46px', marginTop: '8px' }}>Доброе утро,<br/>{name}.</h1>
+                <span className="date-label">{dateString}</span>
+                <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>
+                    {greeting},<br/>{name}.
+                </h1>
             </div>
             
             <div className="fade-up" style={{animationDelay: '0.2s', marginTop: '40px', display: 'flex', justifyContent: 'center'}}>
                 {/* Заглушка для кольца энергии */}
-                <div style={{ width: '200px', height: '200px', borderRadius: '50%', border: '2px dashed var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '48px', lineHeight: '1' }}>0</span>
-                    <span style={{ fontSize: '10px', letterSpacing: '2px', color: 'var(--text-muted)', marginTop: '4px' }}>ЭНЕРГИЯ ДНЯ</span>
+                <div style={{ width: '220px', height: '220px', borderRadius: '50%', border: '2px dashed var(--stroke)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                    <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '64px', lineHeight: '1' }}>0</span>
+                    <span style={{ fontSize: '10px', letterSpacing: '2px', color: 'var(--text-muted)', marginTop: '8px', fontWeight: '600' }}>ЭНЕРГИЯ ДНЯ</span>
                 </div>
             </div>
         </div>
