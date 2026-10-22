@@ -1,26 +1,31 @@
 const { useState, useEffect } = React;
 
-// ───────── КОМПОНЕНТ ЛОГОТИПА ─────────
+// ───────── ПРЕМИАЛЬНЫЙ ЛОГОТИП ─────────
 function Logo() {
     return (
-        <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="44" stroke="var(--stroke)" strokeWidth="2" />
-            <path d="M50 6 A44 44 0 0 1 94 50" stroke="var(--accent)" strokeWidth="4" strokeLinecap="round" />
-            <text x="50" y="68" fontFamily="'Cormorant Garamond', serif" fontSize="52" fill="var(--text)" textAnchor="middle" fontWeight="500">K</text>
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Тонкое фоновое кольцо */}
+            <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="1.5" />
+            {/* Акцентная дуга (прогресс) */}
+            <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
+            {/* Точка в центре (символ "сейчас") */}
+            <circle cx="50" cy="50" r="4" fill="var(--accent)" />
         </svg>
     );
 }
 
-// ───────── ЭКРАН 1: ПРИВЕТСТВИЕ ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            <div className="fade-up" style={{ marginBottom: '32px' }}>
+            {/* Логотип теперь аккуратно в левом верхнем углу контента */}
+            <div className="fade-up" style={{ marginBottom: '48px' }}>
                 <Logo />
             </div>
+
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>
                 Ритуал,<br/>а не гонка
             </h1>
+            
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>
                 Тихая сила ежедневных повторений.<br/>
                 Одна привычка. Один день. Один шаг.
@@ -35,7 +40,6 @@ function WelcomeScreen({ onStart }) {
     );
 }
 
-// ───────── ЭКРАН 2: ВВОД ИМЕНИ ─────────
 function NameScreen({ onNext }) {
     const [name, setName] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -49,11 +53,11 @@ function NameScreen({ onNext }) {
 
     return (
         <div className="content">
-            <h1 className="title fade-up" style={{ fontSize: '48px' }}>
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>
                 Как тебя<br/>зовут?
             </h1>
             
-            <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '48px'}}>
+            <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '40px'}}>
                 <input 
                     type="text" 
                     className={`input-underline ${isFocused ? 'focused' : ''}`}
@@ -70,7 +74,7 @@ function NameScreen({ onNext }) {
             
             <button 
                 className="btn-primary fade-up" 
-                style={{animationDelay: '0.2s', opacity: name.trim().length > 0 ? 1 : 0.5}}
+                style={{animationDelay: '0.2s', opacity: name.trim().length > 0 ? 1 : 0.4}}
                 onClick={handleNext}
                 disabled={name.trim().length === 0}
             >
@@ -80,11 +84,10 @@ function NameScreen({ onNext }) {
     );
 }
 
-// ───────── ЭКРАН 3: ЗАГЛУШКА (ПРИВЫЧКИ) ─────────
 function HabitsScreen({ name }) {
     return (
         <div className="content">
-            <h1 className="title fade-up" style={{ fontSize: '48px' }}>
+            <h1 className="title fade-up" style={{ fontSize: 'clamp(36px, 10vw, 48px)' }}>
                 Приятно<br/>познакомиться,<br/>{name}
             </h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.1s', marginTop: '24px'}}>
@@ -94,10 +97,9 @@ function HabitsScreen({ name }) {
     );
 }
 
-// ───────── ГЛАВНЫЙ КОМПОНЕНТ (РОУТИНГ) ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
-    const [step, setStep] = useState('welcome'); // welcome | name | habits
+    const [step, setStep] = useState('welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
 
     useEffect(() => {
@@ -133,7 +135,6 @@ function App() {
                 ))}
             </div>
 
-            {/* Роутинг экранов */}
             {step === 'welcome' && <WelcomeScreen onStart={() => setStep('name')} />}
             {step === 'name' && <NameScreen onNext={handleNameNext} />}
             {step === 'habits' && <HabitsScreen name={name} />}
