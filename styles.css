@@ -457,3 +457,25 @@ body {
 .calendar-day.future {
     opacity: 0.3;
 }
+/* ───────── КОЛИЧЕСТВЕННЫЕ ПРИВЫЧКИ ───────── */
+.habit-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--stroke);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.habit-check.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.habit-row.completed .habit-row-title {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+}
