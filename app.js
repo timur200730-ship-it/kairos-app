@@ -10,14 +10,15 @@ const Icons = {
     Pen: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
     Moon: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
     PhoneOff: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.33A19.79 19.79 0 0 1 2 12.18 2 2 0 0 1 4 10h3a2 2 0 0 1 1.95 1.44 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.93 17.63"/><line x1="2" y1="2" x2="22" y2="22"/></svg>,
-    Check: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><polyline points="20 6 9 17 4 12"/></svg>
+    Check: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width: '12px', height: '12px' }}><polyline points="20 6 9 17 4 12"/></svg>,
+    Bell: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
 };
 
 const HABITS_LIST = [
     { id: 'exercise', label: 'Зарядка', icon: Icons.Sun, type: 'binary' },
     { id: 'reading', label: 'Чтение', icon: Icons.Book, type: 'binary' },
     { id: 'meditation', label: 'Медитация', icon: Icons.Lotus, type: 'binary' },
-    { id: 'water', label: 'Вода', icon: Icons.Drop, type: 'counter', target: 8, unit: 'ст.' }, // 8 стаканов
+    { id: 'water', label: 'Вода', icon: Icons.Drop, type: 'counter', target: 8, unit: 'ст.' },
     { id: 'walk', label: 'Прогулка', icon: Icons.Walk, type: 'binary' },
     { id: 'journal', label: 'Дневник', icon: Icons.Pen, type: 'binary' },
     { id: 'sleep', label: 'Сон', icon: Icons.Moon, type: 'binary' },
@@ -101,13 +102,8 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                                 <span className="habit-row-title">{habit.label}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                {/* Счетчик с уточнением единиц */}
                                 {habit.type === 'counter' && (<span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '500' }}>{currentVal} / {habit.target} {habit.unit}</span>)}
-                                
-                                <div className={`habit-check ${isDone ? 'checked' : ''}`}>
-                                    {isDone && <Icons.Check />}
-                                </div>
-                                
+                                <div className={`habit-check ${isDone ? 'checked' : ''}`}>{isDone && <Icons.Check />}</div>
                                 <div onClick={(e) => { e.stopPropagation(); onOpenHabit(habit); }} style={{ color: 'var(--text-muted)', cursor: 'pointer', padding: '0 4px', fontSize: '18px', opacity: 0.6 }}>›</div>
                             </div>
                         </div>
@@ -126,70 +122,23 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
 function HabitDetailsScreen({ habit, onBack }) {
     const [noteDate, setNoteDate] = useState(null); const [noteText, setNoteText] = useState('');
     const days = []; let completedDaysCount = 0;
-    for (let i = 29; i >= 0; i--) {
-        const d = new Date(); d.setDate(d.getDate() - i); const dateStr = d.toISOString().split('T')[0];
-        const raw = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}');
-        const isDone = (raw[habit.id] || 0) >= (habit.target || 1);
-        if (isDone) completedDaysCount++;
-        const savedNote = localStorage.getItem(`kairos_note_${dateStr}_${habit.id}`) || '';
-        days.push({ date: dateStr, dayNum: d.getDate(), isDone, note: savedNote });
-    }
+    for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const dateStr = d.toISOString().split('T')[0]; const raw = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}'); const isDone = (raw[habit.id] || 0) >= (habit.target || 1); if (isDone) completedDaysCount++; const savedNote = localStorage.getItem(`kairos_note_${dateStr}_${habit.id}`) || ''; days.push({ date: dateStr, dayNum: d.getDate(), isDone, note: savedNote }); }
     let realStreak = 0; let checkDate = new Date();
     while (true) { const dateStr = checkDate.toISOString().split('T')[0]; const raw = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}'); if ((raw[habit.id] || 0) >= (habit.target || 1)) { realStreak++; checkDate.setDate(checkDate.getDate() - 1); } else break; }
     const avgPercent = Math.round((completedDaysCount / 30) * 100);
-
     const openNote = (day) => { setNoteDate(day.date); setNoteText(day.note); };
     const saveNote = () => { if (noteDate) { localStorage.setItem(`kairos_note_${noteDate}_${habit.id}`, noteText); setNoteDate(null); } };
 
     return (
         <div className="content">
             <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>← Назад</button>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ color: 'var(--accent)', width: '32px', height: '32px' }}><habit.icon /></div>
-                <h1 className="title" style={{ fontSize: '32px', margin: 0 }}>{habit.label}</h1>
-            </div>
-
-            {/* Медицинская рекомендация для воды */}
-            {habit.id === 'water' && (
-                <p className="fade-up" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.5 }}>
-                    Рекомендуемая норма: около 2 литров в день (8 стаканов по 250 мл). Слушайте свой организм.
-                </p>
-            )}
-
-            <div className="fade-up" style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
-                <div style={{ flex: 1, background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--stroke)', textAlign: 'center' }}>
-                    <span style={{ display: 'block', fontFamily: 'Cormorant Garamond', fontSize: '32px', color: 'var(--accent)' }}>{realStreak}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Стрик</span>
-                </div>
-                <div style={{ flex: 1, background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--stroke)', textAlign: 'center' }}>
-                    <span style={{ display: 'block', fontFamily: 'Cormorant Garamond', fontSize: '32px', color: 'var(--text)' }}>{avgPercent}%</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>За 30 дней</span>
-                </div>
-            </div>
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}><div style={{ color: 'var(--accent)', width: '32px', height: '32px' }}><habit.icon /></div><h1 className="title" style={{ fontSize: '32px', margin: 0 }}>{habit.label}</h1></div>
+            {habit.id === 'water' && (<p className="fade-up" style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.5 }}>Рекомендуемая норма: около 2 литров в день (8 стаканов по 250 мл). Слушайте свой организм.</p>)}
+            <div className="fade-up" style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}><div style={{ flex: 1, background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--stroke)', textAlign: 'center' }}><span style={{ display: 'block', fontFamily: 'Cormorant Garamond', fontSize: '32px', color: 'var(--accent)' }}>{realStreak}</span><span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Стрик</span></div><div style={{ flex: 1, background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--stroke)', textAlign: 'center' }}><span style={{ display: 'block', fontFamily: 'Cormorant Garamond', fontSize: '32px', color: 'var(--text)' }}>{avgPercent}%</span><span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>За 30 дней</span></div></div>
             <p className="subtitle fade-up" style={{ marginBottom: '16px' }}>Нажми на день, чтобы оставить заметку:</p>
-            
-            <div className="calendar-grid fade-up" style={{ animationDelay: '0.1s', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
-                {days.map(day => (
-                    <div key={day.date} className={`calendar-day ${day.isDone ? 'completed' : ''}`} onClick={() => openNote(day)} style={{ border: day.note ? '1.5px dashed var(--accent)' : '' }}>{day.dayNum}</div>
-                ))}
-            </div>
-
+            <div className="calendar-grid fade-up" style={{ animationDelay: '0.1s', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>{days.map(day => (<div key={day.date} className={`calendar-day ${day.isDone ? 'completed' : ''}`} onClick={() => openNote(day)} style={{ border: day.note ? '1.5px dashed var(--accent)' : '' }}>{day.dayNum}</div>))}</div>
             <div style={{ flex: 1 }}></div>
-
-            {noteDate && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setNoteDate(null)}>
-                    <div style={{ background: 'var(--surface)', width: '100%', padding: '24px', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease' }} onClick={e => e.stopPropagation()}>
-                        <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Заметка на {noteDate}</h3>
-                        <textarea className="note-input" placeholder="Как прошло?" value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                            <button className="ghost-btn" onClick={() => setNoteDate(null)} style={{ flex: 1 }}>Отмена</button>
-                            <button className="btn-primary" onClick={saveNote} style={{ flex: 1 }}>Сохранить</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {noteDate && (<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setNoteDate(null)}><div style={{ background: 'var(--surface)', width: '100%', padding: '24px', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease' }} onClick={e => e.stopPropagation()}><h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Заметка на {noteDate}</h3><textarea className="note-input" placeholder="Как прошло?" value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box' }} /><div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}><button className="ghost-btn" onClick={() => setNoteDate(null)} style={{ flex: 1 }}>Отмена</button><button className="btn-primary" onClick={saveNote} style={{ flex: 1 }}>Сохранить</button></div></div></div>)}
         </div>
     );
 }
@@ -202,13 +151,98 @@ function NewChallengeScreen({ onBack, onCreated }) { const [selectedHabit, setSe
 
 function ReflectionScreen({ onSave, onBack }) { const todayKey = getTodayKey(); const savedData = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || '{}'); const [mood, setMood] = useState(savedData.mood || 0); const [note, setNote] = useState(savedData.note || ''); const handleSave = () => { if (mood === 0) return; localStorage.setItem(`kairos_reflection_${todayKey}`, JSON.stringify({ mood, note })); onSave(); }; return (<div className="content"><button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>← Назад</button><HeaderLogo /><h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Как прошёл<br/>день?</h1><div className="fade-up" style={{animationDelay: '0.1s', marginTop: '32px'}}><div className="mood-grid">{[1, 2, 3, 4, 5].map(value => (<div key={value} className={`mood-circle ${mood === value ? 'selected' : ''}`} onClick={() => setMood(value)}></div>))}</div><div className="mood-label" style={{ opacity: mood > 0 ? 1 : 0 }}>{MOOD_LABELS[mood] || ''}</div></div><div className="fade-up" style={{animationDelay: '0.2s', marginTop: '16px'}}><textarea className="note-input" placeholder="Короткая заметка (необязательно)" value={note} onChange={(e) => setNote(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: 'var(--surface)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', WebkitAppearance: 'none' }} /></div><div style={{ flex: 1, minHeight: '40px' }}></div><button className="btn-primary" style={{ opacity: mood > 0 ? 1 : 0.4 }} onClick={handleSave} disabled={mood === 0}>Сохранить</button></div>); }
 
-function ProfileScreen({ name, theme, setTheme }) { const stats = calculateStats(); const initial = name ? name.charAt(0).toUpperCase() : 'K'; const handleExport = () => { const data = {}; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key.startsWith('kairos_')) data[key] = localStorage.getItem(key); } const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `kairos_backup_${getTodayKey()}.json`; a.click(); URL.revokeObjectURL(url); }; const handleReset = () => { if (window.confirm("Вы уверены? Это удалит все ваши привычки, челленджи и историю. Действие необратимо.")) { localStorage.clear(); window.location.reload(); } }; return (<div className="content"><HeaderLogo /><div className="fade-up profile-header"><div className="avatar">{initial}</div><h1 className="title" style={{ fontSize: '32px', marginTop: '16px' }}>{name}</h1></div><div className="fade-up stats-grid" style={{ animationDelay: '0.1s' }}><div className="stat-item"><span className="stat-value">{stats.currentStreak}</span><span className="stat-label">Стрик</span></div><div className="stat-item"><span className="stat-value">{stats.totalCheckins}</span><span className="stat-label">Выполнено</span></div><div className="stat-item"><span className="stat-value">{stats.completedChallenges}</span><span className="stat-label">Путей</span></div></div><div className="fade-up settings-list" style={{ animationDelay: '0.2s' }}><div className="settings-header">Настройки</div><div className="settings-row" style={{ cursor: 'default' }}><span>Тема оформления</span><div style={{ display: 'flex', gap: '8px' }}>{Object.keys(window.KAIROS_THEMES).map(key => (<div key={key} onClick={() => setTheme(key)} style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: window.KAIROS_THEMES[key].accent, border: theme === key ? '2px solid white' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }} />))}</div></div><div className="settings-row" onClick={handleExport}><span>Экспорт данных</span><span style={{ color: 'var(--text-muted)' }}>JSON ↓</span></div><div className="settings-row" onClick={() => alert("Kairos v1.0\nРитуал, а не гонка.\nСоздано с любовью.")}><span>О приложении</span><span style={{ color: 'var(--text-muted)' }}>v1.0</span></div><div className="settings-row" onClick={handleReset} style={{ color: '#FF7A59', marginTop: '16px' }}><span>Сбросить прогресс</span></div></div><div style={{ height: '100px' }}></div></div>); }
+function ProfileScreen({ name, theme, setTheme }) {
+    const [notifPermission, setNotifPermission] = useState('default');
+    const stats = calculateStats(); const initial = name ? name.charAt(0).toUpperCase() : 'K';
+
+    useEffect(() => {
+        if ('Notification' in window) setNotifPermission(Notification.permission);
+    }, []);
+
+    const requestNotificationPermission = async () => {
+        if (!('Notification' in window)) {
+            alert('Ваш браузер не поддерживает уведомления.');
+            return;
+        }
+        const permission = await Notification.requestPermission();
+        setNotifPermission(permission);
+        if (permission === 'granted') {
+            alert(`Отлично! Мы напомним вам о ритуале в ${localStorage.getItem('kairos_time') || '09:00'}.`);
+        } else {
+            alert('Уведомления отключены. Вы всегда можете включить их в настройках браузера.');
+        }
+    };
+
+    const handleExport = () => { const data = {}; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key.startsWith('kairos_')) data[key] = localStorage.getItem(key); } const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `kairos_backup_${getTodayKey()}.json`; a.click(); URL.revokeObjectURL(url); };
+    const handleReset = () => { if (window.confirm("Вы уверены? Это удалит все ваши привычки, челленджи и историю. Действие необратимо.")) { localStorage.clear(); window.location.reload(); } };
+    
+    return (
+        <div className="content">
+            <HeaderLogo />
+            <div className="fade-up profile-header"><div className="avatar">{initial}</div><h1 className="title" style={{ fontSize: '32px', marginTop: '16px' }}>{name}</h1></div>
+            <div className="fade-up stats-grid" style={{ animationDelay: '0.1s' }}><div className="stat-item"><span className="stat-value">{stats.currentStreak}</span><span className="stat-label">Стрик</span></div><div className="stat-item"><span className="stat-value">{stats.totalCheckins}</span><span className="stat-label">Выполнено</span></div><div className="stat-item"><span className="stat-value">{stats.completedChallenges}</span><span className="stat-label">Путей</span></div></div>
+            <div className="fade-up settings-list" style={{ animationDelay: '0.2s' }}>
+                <div className="settings-header">Настройки</div>
+                
+                <div className="settings-row" style={{ cursor: 'default' }}>
+                    <span>Тема оформления</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>{Object.keys(window.KAIROS_THEMES).map(key => (<div key={key} onClick={() => setTheme(key)} style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: window.KAIROS_THEMES[key].accent, border: theme === key ? '2px solid white' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }} />))}</div>
+                </div>
+                
+                {/* Переключатель уведомлений */}
+                <div className="settings-row" onClick={requestNotificationPermission}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }}><Icons.Bell /></div>
+                        <span>Напоминания</span>
+                    </div>
+                    <span style={{ color: notifPermission === 'granted' ? 'var(--accent)' : 'var(--text-muted)' }}>
+                        {notifPermission === 'granted' ? 'Включены' : 'Включить'}
+                    </span>
+                </div>
+
+                <div className="settings-row" onClick={handleExport}><span>Экспорт данных</span><span style={{ color: 'var(--text-muted)' }}>JSON ↓</span></div>
+                <div className="settings-row" onClick={() => alert("Kairos v1.0\nРитуал, а не гонка.\nСоздано с любовью.")}><span>О приложении</span><span style={{ color: 'var(--text-muted)' }}>v1.0</span></div>
+                <div className="settings-row" onClick={handleReset} style={{ color: '#FF7A59', marginTop: '16px' }}><span>Сбросить прогресс</span></div>
+            </div>
+            <div style={{ height: '100px' }}></div>
+        </div>
+    );
+}
 
 function BottomNav({ activeTab, setTab }) { const tabs = [{ id: 'today', icon: '◐' }, { id: 'challenges', icon: '◇' }, { id: 'profile', icon: '◯' }]; return (<div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px', background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid var(--stroke)', borderRadius: '99px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20 }}>{tabs.map(tab => (<button key={tab.id} onClick={() => setTab(tab.id)} style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease', background: activeTab === tab.id ? 'var(--accent)' : 'transparent', color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)', border: 'none' }}>{tab.icon}</button>))}</div>); }
 
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora'); const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); const [name, setName] = useState(() => localStorage.getItem('kairos_name') || ''); const [activeTab, setActiveTab] = useState('today'); const [selectedChallenge, setSelectedChallenge] = useState(null); const [selectedHabit, setSelectedHabit] = useState(null); const themeData = window.KAIROS_THEMES[theme];
+    
     useEffect(() => { const root = document.documentElement; root.style.setProperty('--accent', themeData.accent); root.style.setProperty('--accent-glow', themeData.glow); root.style.setProperty('--halo-1', themeData.halo1); root.style.setProperty('--halo-2', themeData.halo2); localStorage.setItem('kairos_theme', theme); }, [theme, themeData]);
+
+    // Логика Push-уведомлений (проверка каждые 30 секунд)
+    useEffect(() => {
+        if (!('Notification' in window)) return;
+        
+        const checkTime = setInterval(() => {
+            if (Notification.permission === 'granted') {
+                const now = new Date();
+                const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const reminderTime = localStorage.getItem('kairos_time') || '09:00';
+                const today = getTodayKey();
+                const lastNotified = localStorage.getItem('kairos_last_notified');
+
+                if (currentTime === reminderTime && lastNotified !== today) {
+                    // Отправляем уведомление
+                    new Notification('Kairos · Ритуал', {
+                        body: 'Время для твоего ритуала. Один маленький шаг сегодня.',
+                        icon: './assets/icon.png', // Убедитесь, что путь к иконке верный
+                        badge: './assets/icon.png'
+                    });
+                    localStorage.setItem('kairos_last_notified', today);
+                }
+            }
+        }, 30000); // 30000 мс = 30 секунд
+        
+        return () => clearInterval(checkTime);
+    }, []);
+
     return (
         <div className="screen">
             <InstallPrompt />
