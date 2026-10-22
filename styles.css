@@ -311,3 +311,87 @@ body {
 .btn-ghost:active {
     background: var(--surface);
 }
+/* ───────── СТАТИСТИКА ───────── */
+.stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: -10px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+/* ───────── РЕФЛЕКСИЯ ───────── */
+.reflection-moods {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+.mood-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--stroke);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mood-circle.selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+    transform: scale(1.1);
+}
+
+.mood-circle.selected::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    height: 56px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+}
+
+.btn-ghost:active {
+    background: var(--surface);
+}
