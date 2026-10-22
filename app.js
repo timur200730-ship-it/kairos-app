@@ -100,12 +100,41 @@ function EnergyRing({ progress, accentColor, gradientColor }) {
     );
 }
 
+// ───────── НИЖНЕЕ МЕНЮ (НАВИГАЦИЯ) ─────────
 function BottomNav({ activeTab, setTab }) {
     const tabs = [
         { id: 'today', icon: '◐' },
         { id: 'challenges', icon: '◇' },
         { id: 'profile', icon: '◯' }
     ];
+
+    return (
+        <div style={{
+            position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: '8px', padding: '8px',
+            background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)',
+            border: '1px solid var(--stroke)', borderRadius: '99px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20 // zIndex больше, чем у градиента (10)
+        }}>
+            {tabs.map(tab => (
+                <button
+                    key={tab.id}
+                    onClick={() => setTab(tab.id)}
+                    style={{
+                        width: '56px', height: '56px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease',
+                        background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
+                        color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)',
+                        border: 'none'
+                    }}
+                >
+                    {tab.icon}
+                </button>
+            ))}
+        </div>
+    );
+}
 
     return (
         <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px', background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid var(--stroke)', borderRadius: '99px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 100 }}>
@@ -299,7 +328,13 @@ function App() {
                     <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
                         <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
                     </div>
+                                        // ... (роутинг экранов)
                     
+                    {/* Градиент и меню */}
+                    <div className="nav-gradient"></div>
+                    <BottomNav activeTab={activeTab} setTab={setActiveTab} />
+                </>
+            )}
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} />}
                     {activeTab === 'challenges' && (
                         <div className="content fade-up">
