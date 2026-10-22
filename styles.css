@@ -236,3 +236,37 @@ body {
 .habit-card.selected .habit-label {
     color: var(--accent);
 }
+/* ───────── ОБНОВЛЕННАЯ СЕТКА ПРИВЫЧЕК ───────── */
+.habits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px; /* Чуть уменьшили отступ между карточками */
+}
+
+.habit-card {
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 16px; /* Сделали чуть аккуратнее */
+    padding: 14px 10px; /* Уменьшили внутренние отступы */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Уменьшили отступ между иконкой и текстом */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+}
+
+.habit-icon {
+    width: 24px; /* Чуть уменьшили иконку */
+    height: 24px;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.habit-label {
+    font-size: 13px; /* Уменьшили шрифт */
+    font-weight: 500;
+    color: var(--text);
+}
