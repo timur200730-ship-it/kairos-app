@@ -7,45 +7,30 @@
     --transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
-}
-
-/* ───────── ФИКСЫ ДЛЯ МОБИЛЬНЫХ БРАУЗЕРОВ ───────── */
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior-y: none; /* Отключает "резинку" всей страницы на iPhone */
-}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
+    height: 100dvh;
+    overflow: hidden;
     transition: background-color var(--transition);
 }
 
-#root { 
-    height: 100%; 
-}
+#root { height: 100%; }
 
 .screen {
     height: 100%;
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Жестко запрещаем скроллить сам экран */
-}
+    overflow: hidden;
 }
 
-/* ───────── ОРЕОЛ И ФОН ───────── */
+/* ───────── ОРЕОЛ (ВОЗВРАЩАЕМ) ───────── */
 .halo-container {
-    position: fixed;
+    position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     overflow: hidden;
     z-index: 0;
@@ -60,20 +45,46 @@ body {
     opacity: 0.6;
 }
 
-.halo-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: var(--halo-1); }
-.halo-2 { width: 350px; height: 350px; top: 150px; right: -50px; background: var(--halo-2); }
+.halo-1 {
+    width: 600px; height: 600px;
+    top: -200px; left: -100px;
+    background: var(--halo-1);
+}
 
-/* ───────── ОСНОВНОЙ КОНТЕЙНЕР ───────── */
+.halo-2 {
+    width: 400px; height: 400px;
+    top: 100px; right: -50px; /* Сдвинули вправо для баланса */
+    background: var(--halo-2);
+}
+
+/* ───────── ГЛОБАЛЬНАЯ ШАПКА (ЛОГО) ───────── */
+.app-header {
+    position: absolute;
+    top: 24px; left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+}
+
+.app-header-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
 .content {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
-    overflow-y: auto; /* Скролл теперь происходит ТОЛЬКО внутри контента */
-    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
-    /* Нижний отступ 140px = высота меню (100px) + запас */
-    padding: 60px 32px 140px 32px; 
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 80px 32px 120px 32px; /* Увеличили верхний отступ из-за шапки */
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
@@ -115,23 +126,36 @@ body {
 }
 .btn-primary:active { transform: scale(0.96); }
 
+.btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    height: 56px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+}
+.btn-ghost:active { background: var(--surface); }
+
 /* ───────── АНИМАЦИИ ───────── */
-.fade-up { 
-    opacity: 0; 
-    transform: translateY(15px); 
-    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+.fade-up {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-@keyframes fadeUp { 
-    to { opacity: 1; transform: translateY(0); } 
-}
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
 /* ───────── ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ───────── */
 .theme-switcher {
     position: absolute;
-    top: 20px; left: 50%;
-    transform: translateX(-50%);
+    top: 24px; right: 24px;
     display: flex;
-    gap: 16px;
+    gap: 12px;
     z-index: 10;
     padding: 8px 16px;
     background: rgba(255,255,255,0.03);
@@ -139,54 +163,50 @@ body {
     border: 1px solid var(--stroke);
     backdrop-filter: blur(10px);
 }
-.theme-dot { 
-    width: 14px; height: 14px; 
-    border-radius: 50%; 
-    opacity: 0.3; 
-    cursor: pointer; 
-    transition: all 0.3s ease; 
+.theme-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    opacity: 0.3;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
-.theme-dot.active { 
-    opacity: 1; 
-    transform: scale(1.3); 
-}
+.theme-dot.active { opacity: 1; transform: scale(1.3); }
 
 /* ───────── ПОЛЕ ВВОДА ───────── */
 .input-underline {
-    width: 100%; background: transparent; border: none;
-    border-bottom: 1.5px solid var(--stroke); color: var(--text);
-    font-family: 'Inter', sans-serif; font-size: 20px;
-    padding: 12px 0; outline: none; transition: border-color 0.3s ease;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--stroke);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    padding: 12px 0;
+    outline: none;
+    transition: border-color 0.3s ease;
 }
 .input-underline::placeholder { color: var(--text-muted); }
 .input-underline.focused { border-bottom-color: var(--accent); }
 
-/* ───────── БРЕНД-ЛОК ───────── */
-.brand-lockup { display: flex; align-items: center; gap: 16px; margin-bottom: 56px; }
-.brand-name { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; padding-top: 2px; }
-
-/* ───────── СЕТКА ПРИВЫЧЕК (ОНБОРДИНГ) ───────── */
+/* ───────── СЕТКА ПРИВЫЧЕК ───────── */
 .habits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .habit-card {
-    background: var(--surface); border: 1px solid var(--stroke);
-    border-radius: 16px; padding: 14px 10px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-    cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align: center;
+    background: var(--surface); border: 1px solid var(--stroke); border-radius: 16px;
+    padding: 14px 10px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .habit-icon { width: 24px; height: 24px; color: var(--text-muted); transition: color 0.3s ease; }
-.habit-icon svg { width: 100%; height: 100%; }
 .habit-label { font-size: 13px; font-weight: 500; color: var(--text); }
 .habit-card.selected { background: var(--accent-glow); border-color: var(--accent); transform: scale(0.97); }
 .habit-card.selected .habit-icon, .habit-card.selected .habit-label { color: var(--accent); }
 
-/* ───────── СЕЛЕКТОР ВРЕМЕНИ ───────── */
+/* ───────── ВРЕМЯ ───────── */
 .time-picker-container { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 60px; cursor: pointer; }
 .time-display { font-family: 'Cormorant Garamond', serif; font-size: 96px; line-height: 1; letter-spacing: 2px; color: var(--text); text-shadow: 0 0 40px var(--accent-glow); user-select: none; }
 .time-input-hidden { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; font-size: 100px; }
 
-/* ───────── ЭКРАН «СЕГОДНЯ» ───────── */
-.date-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
-.ring-container { position: relative; display: flex; justify-content: center; align-items: center; margin: 40px 0; }
+/* ───────── КОЛЬЦО ЭНЕРГИИ И СПИСОК ───────── */
+.ring-container { position: relative; display: flex; justify-content: center; align-items: center; margin: 30px 0; }
 .ring-svg { transform: rotate(-90deg); }
 .ring-bg { stroke: var(--stroke); fill: none; }
 .ring-progress { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -194,19 +214,8 @@ body {
 .ring-number { font-family: 'Cormorant Garamond', serif; font-size: 64px; line-height: 1; color: var(--text); }
 .ring-label { font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); font-weight: 600; margin-top: 8px; }
 
-/* ───────── СПИСОК ПРИВЫЧЕК (ГЛАВНЫЙ ЭКРАН) ───────── */
 .habits-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
-.habit-row {
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--surface); padding: 16px 20px;
-    border-radius: 20px; border: 1px solid var(--stroke);
-    cursor: pointer; transition: all 0.3s ease;
-    
-    /* Фиксы для мобильных устройств, чтобы не блокировались нажатия при скролле */
-    user-select: none; 
-    -webkit-user-select: none; 
-    touch-action: manipulation; 
-}
+.habit-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 16px 20px; border-radius: 20px; border: 1px solid var(--stroke); cursor: pointer; transition: all 0.3s ease; }
 .habit-row:active { transform: scale(0.98); }
 .habit-row-left { display: flex; align-items: center; gap: 16px; }
 .habit-row-icon { width: 24px; height: 24px; color: var(--text-muted); transition: color 0.3s ease; }
@@ -216,182 +225,18 @@ body {
 .habit-row.completed .habit-check::after { content: ''; width: 6px; height: 10px; border: solid #0B0D10; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
 .habit-row.completed .habit-row-icon, .habit-row.completed .habit-row-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-muted); }
 
-/* Градиент для затухания контента */
-.nav-gradient {
-    position: absolute; /* Привязан к низу приложения, а не окна браузера */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 120px;
-    background: linear-gradient(to top, var(--bg) 40%, transparent);
-    z-index: 10;
-    pointer-events: none; /* Пропускает клики сквозь себя */
-}
 /* ───────── СТАТИСТИКА ───────── */
-.stats-row {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: -10px;
-    margin-bottom: 30px;
-}
-
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
-    color: var(--text);
-    line-height: 1;
-}
-
-.stat-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-top: 6px;
-    font-weight: 600;
-}
+.stats-row { display: flex; justify-content: center; gap: 40px; margin-top: -10px; margin-bottom: 30px; }
+.stat-item { display: flex; flex-direction: column; align-items: center; }
+.stat-value { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--text); line-height: 1; }
+.stat-label { font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-top: 6px; font-weight: 600; }
 
 /* ───────── РЕФЛЕКСИЯ ───────── */
-.reflection-moods {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
-    margin-bottom: 40px;
-}
+.reflection-moods { display: flex; justify-content: space-between; margin-top: 40px; margin-bottom: 40px; }
+.mood-circle { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--stroke); cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
+.mood-circle.selected { border-color: var(--accent); background: var(--accent-glow); transform: scale(1.1); }
+.mood-circle.selected::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
 
-.mood-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 2px solid var(--stroke);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+.date-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 
-.mood-circle.selected {
-    border-color: var(--accent);
-    background: var(--accent-glow);
-    transform: scale(1.1);
-}
-
-.mood-circle.selected::after {
-    content: '';
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-}
-
-.btn-ghost {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--stroke);
-    border-radius: 999px;
-    height: 56px;
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.3s ease;
-    margin-bottom: 16px;
-}
-
-.btn-ghost:active {
-    background: var(--surface);
-}
-/* ───────── СТАТИСТИКА ───────── */
-.stats-row {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: -10px;
-    margin-bottom: 30px;
-}
-
-.stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
-    color: var(--text);
-    line-height: 1;
-}
-
-.stat-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-top: 6px;
-    font-weight: 600;
-}
-
-/* ───────── РЕФЛЕКСИЯ ───────── */
-.reflection-moods {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
-    margin-bottom: 40px;
-}
-
-.mood-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 2px solid var(--stroke);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mood-circle.selected {
-    border-color: var(--accent);
-    background: var(--accent-glow);
-    transform: scale(1.1);
-}
-
-.mood-circle.selected::after {
-    content: '';
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-}
-
-.btn-ghost {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--stroke);
-    border-radius: 999px;
-    height: 56px;
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.3s ease;
-    margin-bottom: 16px;
-}
-
-.btn-ghost:active {
-    background: var(--surface);
-}
+.nav-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to top, var(--bg) 40%, transparent); z-index: 10; pointer-events: none; }
