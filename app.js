@@ -26,7 +26,16 @@ const HABITS_LIST = [
 const MOOD_LABELS = { 1: 'Тяжело', 2: 'Так себе', 3: 'Обычно', 4: 'Хорошо', 5: 'Отлично' };
 
 function Logo() {
-    // ───────── УМЕНЬШЕННЫЙ ЛОГОТИП ДЛЯ ШАПКИ ─────────
+    return (
+        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="1.5" />
+            <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+        </svg>
+    );
+}
+
+// ───────── УМЕНЬШЕННЫЙ ЛОГОТИП ДЛЯ ШАПКИ ─────────
 function HeaderLogo() {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
@@ -133,13 +142,6 @@ const getTodayKey = () => new Date().toISOString().split('T')[0];
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            return (
-        <div className="content">
-            <HeaderLogo /> {/* <--- ДОБАВИЛИ СЮДА */}
-
-            <div className="fade-up" style={{ marginTop: '0px' }}> {/* Убрали 20px, т.к. лого дал отступ */}
-                <span className="date-label">{dateString}</span>
-                {/* ... остальной код ... */}
             <div className="brand-lockup fade-up"><Logo /><span className="brand-name">KAIROS</span></div>
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.</p>
@@ -235,7 +237,9 @@ function TodayScreen({ name, themeData, onReflect }) {
 
     return (
         <div className="content">
-            <div className="fade-up" style={{ marginTop: '20px' }}>
+            <HeaderLogo />
+
+            <div className="fade-up" style={{ marginTop: '0px' }}>
                 <span className="date-label">{dateString}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
             </div>
@@ -260,7 +264,6 @@ function TodayScreen({ name, themeData, onReflect }) {
                 })}
             </div>
 
-            {/* Кнопка рефлексии с двумя премиальными состояниями */}
             <button 
                 className="fade-up" 
                 style={{
@@ -278,8 +281,6 @@ function TodayScreen({ name, themeData, onReflect }) {
                     outline: 'none',
                     WebkitAppearance: 'none',
                     transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                    
-                    // Логика стилей: если пройдена - темная с обводкой, если нет - залитая акцентом
                     backgroundColor: hasReflected ? 'var(--surface)' : 'var(--accent)',
                     color: hasReflected ? 'var(--accent)' : '#0B0D10',
                     border: hasReflected ? '1.5px solid var(--accent)' : 'none',
@@ -315,17 +316,14 @@ function ReflectionScreen({ onSave, onBack }) {
                 ← Назад
             </button>
 
+            <HeaderLogo />
+
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Как прошёл<br/>день?</h1>
             
             <div className="fade-up" style={{animationDelay: '0.1s', marginTop: '32px'}}>
                 <div className="mood-grid">
-                    {/* Убрали цифры внутри, оставили только круги */}
                     {[1, 2, 3, 4, 5].map(value => (
-                        <div 
-                            key={value} 
-                            className={`mood-circle ${mood === value ? 'selected' : ''}`} 
-                            onClick={() => setMood(value)}
-                        ></div>
+                        <div key={value} className={`mood-circle ${mood === value ? 'selected' : ''}`} onClick={() => setMood(value)}></div>
                     ))}
                 </div>
                 <div className="mood-label" style={{ opacity: mood > 0 ? 1 : 0 }}>
@@ -334,40 +332,19 @@ function ReflectionScreen({ onSave, onBack }) {
             </div>
 
             <div className="fade-up" style={{animationDelay: '0.2s', marginTop: '16px'}}>
-                {/* Жесткие стили для textarea, чтобы убрать белый фон */}
                 <textarea 
                     className="note-input" 
                     placeholder="Короткая заметка (необязательно)" 
                     value={note} 
                     onChange={(e) => setNote(e.target.value)} 
                     rows={3} 
-                    style={{
-                        width: '100%',
-                        backgroundColor: 'var(--surface)',
-                        border: '1px solid var(--stroke)',
-                        borderRadius: '16px',
-                        padding: '16px',
-                        color: 'var(--text)',
-                        fontSize: '15px',
-                        fontFamily: 'Inter, sans-serif',
-                        outline: 'none',
-                        resize: 'none',
-                        boxSizing: 'border-box',
-                        WebkitAppearance: 'none'
-                    }}
+                    style={{ width: '100%', backgroundColor: 'var(--surface)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box', WebkitAppearance: 'none' }}
                 />
             </div>
 
             <div style={{ flex: 1, minHeight: '40px' }}></div>
             
-            <button 
-                className="btn-primary" 
-                style={{ opacity: mood > 0 ? 1 : 0.4 }} 
-                onClick={handleSave} 
-                disabled={mood === 0}
-            >
-                Сохранить
-            </button>
+            <button className="btn-primary" style={{ opacity: mood > 0 ? 1 : 0.4 }} onClick={handleSave} disabled={mood === 0}>Сохранить</button>
         </div>
     );
 }
@@ -428,8 +405,20 @@ function App() {
                     </div>
                     
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} onReflect={() => setStep('reflection')} />}
-                    {activeTab === 'challenges' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1></div>}
-                    {activeTab === 'profile' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1></div>}
+                    
+                    {activeTab === 'challenges' && (
+                        <div className="content fade-up">
+                            <HeaderLogo />
+                            <h1 className="title" style={{ marginTop: '0px' }}>Челленджи</h1>
+                        </div>
+                    )}
+                    
+                    {activeTab === 'profile' && (
+                        <div className="content fade-up">
+                            <HeaderLogo />
+                            <h1 className="title" style={{ marginTop: '0px' }}>Профиль</h1>
+                        </div>
+                    )}
 
                     <div className="nav-gradient"></div>
                     <BottomNav activeTab={activeTab} setTab={setActiveTab} />
