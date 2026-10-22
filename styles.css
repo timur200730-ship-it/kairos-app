@@ -178,3 +178,59 @@ body {
     text-transform: uppercase;
     padding-top: 2px; /* Легкая оптическая коррекция */
 }
+/* ───────── СЕТКА ПРИВЫЧЕК ───────── */
+.habits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Две колонки */
+    gap: 12px;
+}
+
+.habit-card {
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 20px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-align: center;
+}
+
+/* Иконка привычки */
+.habit-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.habit-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Текст привычки */
+.habit-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Состояние "Выбрано" */
+.habit-card.selected {
+    background: var(--accent-glow); /* Легкая заливка цветом темы */
+    border-color: var(--accent);
+    transform: scale(0.97); /* Легкое нажатие */
+}
+
+.habit-card.selected .habit-icon {
+    color: var(--accent); /* Иконка загорается */
+}
+
+.habit-card.selected .habit-label {
+    color: var(--accent);
+}
