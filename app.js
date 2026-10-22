@@ -312,7 +312,17 @@ function App() {
                             <p className="subtitle">Здесь будут настройки и статистика.</p>
                         </div>
                     )}
+                    // ... (код выше с роутингом activeTab) ...
 
+                    {/* Добавляем градиент затухания */}
+                    <div className="nav-gradient"></div>
+                    
+                    <BottomNav activeTab={activeTab} setTab={setActiveTab} />
+                </>
+            )}
+        </div>
+    );
+}
                     <BottomNav activeTab={activeTab} setTab={setActiveTab} />
                 </>
             )}
