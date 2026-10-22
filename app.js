@@ -234,6 +234,36 @@ function ReminderScreen({ name, onFinish }) {
 }
 
 // ───────── ГЛАВНЫЙ ЭКРАН (СЕГОДНЯ) ─────────
+// ───────── ТИХИЙ НАСТАВНИК (КОУЧИНГ) ─────────
+function MentorNote({ progress, userHabits, completed }) {
+    const hour = new Date().getHours();
+    const isAllDone = userHabits.length > 0 && completed.length === userHabits.length;
+    const isNothingDone = completed.length === 0;
+    
+    let message = "";
+    
+    if (isAllDone) {
+        message = "Все привычки выполнены. Сегодня ты был безупречен. Отдохни с чистым сердцем.";
+    } else if (hour < 12) {
+        if (isNothingDone) message = "Новый день. Не нужно спешить. Сделай один маленький шаг, чтобы задать тон.";
+        else message = "Хорошее начало. Помни, что ритуал важнее результата. Продолжай в своем темпе.";
+    } else if (hour < 18) {
+        if (isNothingDone) message = "День в разгаре. Найдите 5 минут для себя прямо сейчас. Это инвестиция в вашу энергию.";
+        else message = "Ты в потоке. Заметь, как приятно делать то, что обещал себе.";
+    } else {
+        if (isNothingDone) message = "День подходит к концу. Если не успел — это нормально. Завтра будет новый шанс.";
+        else message = "Вечер — время замедлиться. Поблагодари себя за то, что нашёл силы сегодня.";
+    }
+
+    return (
+        <div className="fade-up mentor-note" style={{animationDelay: '0.15s'}}>
+            <div className="mentor-icon">◇</div>
+            <p className="mentor-text">{message}</p>
+        </div>
+    );
+}
+
+// ───────── ГЛАВНЫЙ ЭКРАН (СЕГОДНЯ) ─────────
 function TodayScreen({ name, themeData, onReflect }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
@@ -269,6 +299,9 @@ function TodayScreen({ name, themeData, onReflect }) {
             <div className="fade-up" style={{animationDelay: '0.1s'}}>
                 <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
+
+            {/* Блок наставника */}
+            <MentorNote progress={progress} userHabits={userHabits} completed={completed} />
             
             <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
                 {userHabits.map(habit => {
