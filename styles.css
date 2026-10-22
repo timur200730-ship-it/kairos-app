@@ -139,3 +139,25 @@ body {
     transform: scale(1.2);
     border-color: rgba(255,255,255,0.8);
 }
+/* Поле ввода без рамок (только нижняя линия) */
+.input-underline {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--stroke);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    padding: 12px 0;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-underline::placeholder {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.input-underline.focused {
+    border-bottom-color: var(--accent); /* Линия загорается цветом темы при вводе */
+}
