@@ -33,6 +33,7 @@ function Logo() {
     );
 }
 
+// ───────── УСТАНОВКА ПРИЛОЖЕНИЯ ─────────
 function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isIOS, setIsIOS] = useState(false);
@@ -60,7 +61,7 @@ function InstallPrompt() {
     if (isStandalone || (!deferredPrompt && !isIOS)) return null;
 
     return (
-        <div style={{ position: 'absolute', top: '70px', right: '24px', zIndex: 100 }}>
+        <div style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100 }}>
             <button onClick={handleInstallClick} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '99px', padding: '8px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Установить
@@ -74,6 +75,7 @@ function InstallPrompt() {
     );
 }
 
+// ───────── КОЛЬЦО ЭНЕРГИИ ─────────
 function EnergyRing({ progress, accentColor, gradientColor }) {
     const radius = 100;
     const strokeWidth = 14;
@@ -100,53 +102,7 @@ function EnergyRing({ progress, accentColor, gradientColor }) {
     );
 }
 
-// ───────── НИЖНЕЕ МЕНЮ (НАВИГАЦИЯ) ─────────
-function BottomNav({ activeTab, setTab }) {
-    const tabs = [
-        { id: 'today', icon: '◐' },
-        { id: 'challenges', icon: '◇' },
-        { id: 'profile', icon: '◯' }
-    ];
-
-    return (
-        <div style={{
-            position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-            display: 'flex', gap: '8px', padding: '8px',
-            background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)',
-            border: '1px solid var(--stroke)', borderRadius: '99px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20 // zIndex больше, чем у градиента (10)
-        }}>
-            {tabs.map(tab => (
-                <button
-                    key={tab.id}
-                    onClick={() => setTab(tab.id)}
-                    style={{
-                        width: '56px', height: '56px', borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease',
-                        background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
-                        color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)',
-                        border: 'none'
-                    }}
-                >
-                    {tab.icon}
-                </button>
-            ))}
-        </div>
-    );
-}
-
-    return (
-        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px', background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid var(--stroke)', borderRadius: '99px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 100 }}>
-            {tabs.map(tab => (
-                <button key={tab.id} onClick={() => setTab(tab.id)} style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease', background: activeTab === tab.id ? 'var(--accent)' : 'transparent', color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)', border: 'none' }}>
-                    {tab.icon}
-                </button>
-            ))}
-        </div>
-    );
-}
-
+// ───────── ХЕЛПЕРЫ ─────────
 function getGreeting() {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'Доброе утро';
@@ -154,20 +110,17 @@ function getGreeting() {
     if (hour >= 18 && hour < 23) return 'Добрый вечер';
     return 'Доброй ночи';
 }
-
 function getFormattedDate() {
     const now = new Date();
     let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
 }
 
+// ───────── ЭКРАНЫ ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            <div className="brand-lockup fade-up">
-                <Logo />
-                <span className="brand-name">KAIROS</span>
-            </div>
+            <div className="brand-lockup fade-up"><Logo /><span className="brand-name">KAIROS</span></div>
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.</p>
             <div style={{ flex: 1 }}></div>
@@ -280,7 +233,44 @@ function TodayScreen({ name, themeData }) {
                     );
                 })}
             </div>
-            <div style={{ height: '40px' }}></div>
+            {/* Невидимый блок для отступа снизу, чтобы контент не прилипал к меню */}
+            <div style={{ height: '80px' }}></div>
+        </div>
+    );
+}
+
+// ───────── НИЖНЕЕ МЕНЮ ─────────
+function BottomNav({ activeTab, setTab }) {
+    const tabs = [
+        { id: 'today', icon: '◐' },
+        { id: 'challenges', icon: '◇' },
+        { id: 'profile', icon: '◯' }
+    ];
+
+    return (
+        <div style={{
+            position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: '8px', padding: '8px',
+            background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)',
+            border: '1px solid var(--stroke)', borderRadius: '99px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20
+        }}>
+            {tabs.map(tab => (
+                <button
+                    key={tab.id}
+                    onClick={() => setTab(tab.id)}
+                    style={{
+                        width: '56px', height: '56px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease',
+                        background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
+                        color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)',
+                        border: 'none'
+                    }}
+                >
+                    {tab.icon}
+                </button>
+            ))}
         </div>
     );
 }
@@ -290,7 +280,7 @@ function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
-    const [activeTab, setActiveTab] = useState('today'); // Состояние для нижнего меню
+    const [activeTab, setActiveTab] = useState('today');
     const themeData = window.KAIROS_THEMES[theme];
 
     useEffect(() => {
@@ -328,26 +318,10 @@ function App() {
                     <div style={{ position: 'absolute', top: 20, right: 24, zIndex: 10 }}>
                         <button onClick={() => setTheme(theme === 'aurora' ? 'ember' : theme === 'ember' ? 'jade' : 'aurora')} style={{ background: 'var(--surface)', border: '1px solid var(--stroke)', color: 'var(--text)', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>◐</button>
                     </div>
-                                        // ... (роутинг экранов)
                     
-                    {/* Градиент и меню */}
-                    <div className="nav-gradient"></div>
-                    <BottomNav activeTab={activeTab} setTab={setActiveTab} />
-                </>
-            )}
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} />}
-                    {activeTab === 'challenges' && (
-                        <div className="content fade-up">
-                            <h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1>
-                            <p className="subtitle">Здесь будут твои 21-дневные пути.</p>
-                        </div>
-                    )}
-                    {activeTab === 'profile' && (
-                        <div className="content fade-up">
-                            <h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1>
-                            <p className="subtitle">Здесь будут настройки и статистика.</p>
-                        </div>
-                    )}
+                    {activeTab === 'challenges' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1><p className="subtitle">Здесь будут твои 21-дневные пути.</p></div>}
+                    {activeTab === 'profile' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1><p className="subtitle">Здесь будут настройки и статистика.</p></div>}
 
                     <div className="nav-gradient"></div>
                     <BottomNav activeTab={activeTab} setTab={setActiveTab} />
