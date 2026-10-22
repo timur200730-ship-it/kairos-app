@@ -318,6 +318,16 @@ function App() {
 
     return (
         <div className="screen">
+        // ... начало компонента App ...
+    return (
+        <div className="screen">
+            <InstallPrompt /> {/* <--- ВОТ ЭТА СТРОКА */}
+
+            <div className="halo-container">
+                <div className="halo-1"></div>
+                <div className="halo-2"></div>
+            </div>
+// ... остальной код ...
             <div className="halo-container">
                 <div className="halo-1"></div>
                 <div className="halo-2"></div>
