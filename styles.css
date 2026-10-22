@@ -7,8 +7,14 @@
     --transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+}
 
+/* ───────── ФИКСЫ ДЛЯ МОБИЛЬНЫХ БРАУЗЕРОВ ───────── */
 html, body {
     margin: 0;
     padding: 0;
@@ -24,7 +30,9 @@ body {
     transition: background-color var(--transition);
 }
 
-#root { height: 100%; }
+#root { 
+    height: 100%; 
+}
 
 .screen {
     height: 100%;
@@ -35,6 +43,7 @@ body {
     touch-action: pan-y; /* Разрешает только вертикальные жесты */
 }
 
+/* ───────── ОРЕОЛ И ФОН ───────── */
 .halo-container {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -54,19 +63,21 @@ body {
 .halo-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: var(--halo-1); }
 .halo-2 { width: 350px; height: 350px; top: 150px; right: -50px; background: var(--halo-2); }
 
+/* ───────── ОСНОВНОЙ КОНТЕЙНЕР ───────── */
 .content {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    padding: 60px 24px 180px 24px; /* Большой отступ снизу, чтобы контент уходил за меню */
+    padding: 60px 24px 180px 24px; /* Отступ 180px снизу, чтобы контент прокручивался выше меню */
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
 }
 
+/* ───────── ТИПОГРАФИКА ───────── */
 .title {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(42px, 11vw, 56px);
@@ -83,6 +94,7 @@ body {
     font-weight: 500;
 }
 
+/* ───────── КНОПКИ ───────── */
 .btn-primary {
     background: var(--accent);
     color: #0B0D10;
@@ -98,12 +110,19 @@ body {
     width: 100%;
     flex-shrink: 0;
 }
-
 .btn-primary:active { transform: scale(0.96); }
 
-.fade-up { opacity: 0; transform: translateY(15px); animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+/* ───────── АНИМАЦИИ ───────── */
+.fade-up { 
+    opacity: 0; 
+    transform: translateY(15px); 
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+}
+@keyframes fadeUp { 
+    to { opacity: 1; transform: translateY(0); } 
+}
 
+/* ───────── ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ───────── */
 .theme-switcher {
     position: absolute;
     top: 20px; left: 50%;
@@ -117,10 +136,19 @@ body {
     border: 1px solid var(--stroke);
     backdrop-filter: blur(10px);
 }
+.theme-dot { 
+    width: 14px; height: 14px; 
+    border-radius: 50%; 
+    opacity: 0.3; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+}
+.theme-dot.active { 
+    opacity: 1; 
+    transform: scale(1.3); 
+}
 
-.theme-dot { width: 14px; height: 14px; border-radius: 50%; opacity: 0.3; cursor: pointer; transition: all 0.3s ease; }
-.theme-dot.active { opacity: 1; transform: scale(1.3); }
-
+/* ───────── ПОЛЕ ВВОДА ───────── */
 .input-underline {
     width: 100%; background: transparent; border: none;
     border-bottom: 1.5px solid var(--stroke); color: var(--text);
@@ -130,11 +158,11 @@ body {
 .input-underline::placeholder { color: var(--text-muted); }
 .input-underline.focused { border-bottom-color: var(--accent); }
 
-/* Бренд-лок */
+/* ───────── БРЕНД-ЛОК ───────── */
 .brand-lockup { display: flex; align-items: center; gap: 16px; margin-bottom: 56px; }
 .brand-name { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; padding-top: 2px; }
 
-/* Сетка привычек */
+/* ───────── СЕТКА ПРИВЫЧЕК (ОНБОРДИНГ) ───────── */
 .habits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .habit-card {
     background: var(--surface); border: 1px solid var(--stroke);
@@ -148,12 +176,12 @@ body {
 .habit-card.selected { background: var(--accent-glow); border-color: var(--accent); transform: scale(0.97); }
 .habit-card.selected .habit-icon, .habit-card.selected .habit-label { color: var(--accent); }
 
-/* Селектор времени */
+/* ───────── СЕЛЕКТОР ВРЕМЕНИ ───────── */
 .time-picker-container { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 60px; cursor: pointer; }
 .time-display { font-family: 'Cormorant Garamond', serif; font-size: 96px; line-height: 1; letter-spacing: 2px; color: var(--text); text-shadow: 0 0 40px var(--accent-glow); user-select: none; }
 .time-input-hidden { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; font-size: 100px; }
 
-/* Экран Сегодня */
+/* ───────── ЭКРАН «СЕГОДНЯ» ───────── */
 .date-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
 .ring-container { position: relative; display: flex; justify-content: center; align-items: center; margin: 40px 0; }
 .ring-svg { transform: rotate(-90deg); }
@@ -163,14 +191,18 @@ body {
 .ring-number { font-family: 'Cormorant Garamond', serif; font-size: 64px; line-height: 1; color: var(--text); }
 .ring-label { font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); font-weight: 600; margin-top: 8px; }
 
-/* Список привычек (с фиксами для тапов) */
+/* ───────── СПИСОК ПРИВЫЧЕК (ГЛАВНЫЙ ЭКРАН) ───────── */
 .habits-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 .habit-row {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--surface); padding: 16px 20px;
     border-radius: 20px; border: 1px solid var(--stroke);
     cursor: pointer; transition: all 0.3s ease;
-    user-select: none; -webkit-user-select: none; touch-action: manipulation; /* Фикс нажатий */
+    
+    /* Фиксы для мобильных устройств, чтобы не блокировались нажатия при скролле */
+    user-select: none; 
+    -webkit-user-select: none; 
+    touch-action: manipulation; 
 }
 .habit-row:active { transform: scale(0.98); }
 .habit-row-left { display: flex; align-items: center; gap: 16px; }
@@ -181,5 +213,14 @@ body {
 .habit-row.completed .habit-check::after { content: ''; width: 6px; height: 10px; border: solid #0B0D10; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
 .habit-row.completed .habit-row-icon, .habit-row.completed .habit-row-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-muted); }
 
-/* Градиент для плавного затухания контента за меню */
-.nav-gradient { position: fixed; bottom: 0; left: 0; right: 0; height: 160px; background: linear-gradient(to top, var(--bg) 30%, transparent); z-index: 90; pointer-events: none; }
+/* ───────── ГРАДИЕНТ ЗАТУХАНИЯ ЗА МЕНЮ ───────── */
+.nav-gradient { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    right: 0; 
+    height: 160px; 
+    background: linear-gradient(to top, var(--bg) 30%, transparent); 
+    z-index: 90; 
+    pointer-events: none; 
+}
