@@ -325,6 +325,41 @@ function TabBar({ active, onChange }) {
 }
 
 // ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
+// ───────── НИЖНЕЕ МЕНЮ (НАВИГАЦИЯ) ─────────
+function BottomNav({ activeTab, setTab }) {
+    const tabs = [
+        { id: 'today', icon: '◐' },
+        { id: 'challenges', icon: '◇' },
+        { id: 'profile', icon: '◯' }
+    ];
+
+    return (
+        <div style={{
+            position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: '8px', padding: '8px',
+            background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)',
+            border: '1px solid var(--stroke)', borderRadius: '99px',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 100
+        }}>
+            {tabs.map(tab => (
+                <button
+                    key={tab.id}
+                    onClick={() => setTab(tab.id)}
+                    style={{
+                        width: '56px', height: '56px', borderRadius: '50%',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease',
+                        background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
+                        color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)',
+                        border: 'none'
+                    }}
+                >
+                    {tab.icon}
+                </button>
+            ))}
+        </div>
+    );
+}
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'app' : 'welcome');
