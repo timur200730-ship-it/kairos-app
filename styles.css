@@ -274,3 +274,11 @@ body {
     transition: opacity 0.3s ease;
     height: 20px; /* Фиксируем высоту, чтобы верстка не прыгала */
 }
+/* ───────── СКРЫВАЕМ СКРОЛЛБАР (Чтобы не было полосы посередине) ───────── */
+.content::-webkit-scrollbar {
+    display: none; /* Для Chrome, Safari, Edge */
+}
+.content {
+    -ms-overflow-style: none;  /* Для IE и Edge */
+    scrollbar-width: none;     /* Для Firefox */
+}
