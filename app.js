@@ -133,6 +133,13 @@ const getTodayKey = () => new Date().toISOString().split('T')[0];
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
+            return (
+        <div className="content">
+            <HeaderLogo /> {/* <--- ДОБАВИЛИ СЮДА */}
+
+            <div className="fade-up" style={{ marginTop: '0px' }}> {/* Убрали 20px, т.к. лого дал отступ */}
+                <span className="date-label">{dateString}</span>
+                {/* ... остальной код ... */}
             <div className="brand-lockup fade-up"><Logo /><span className="brand-name">KAIROS</span></div>
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.</p>
