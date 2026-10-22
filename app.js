@@ -256,11 +256,12 @@ function TodayScreen({ name, themeData }) {
     );
 }
 
+// ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
-    const [activeTab, setActiveTab] = useState('today'); 
+    const [activeTab, setActiveTab] = useState('today'); // Состояние для нижнего меню
     const themeData = window.KAIROS_THEMES[theme];
 
     useEffect(() => {
@@ -312,17 +313,8 @@ function App() {
                             <p className="subtitle">Здесь будут настройки и статистика.</p>
                         </div>
                     )}
-                    // ... (код выше с роутингом activeTab) ...
 
-                    {/* Добавляем градиент затухания */}
                     <div className="nav-gradient"></div>
-                    
-                    <BottomNav activeTab={activeTab} setTab={setActiveTab} />
-                </>
-            )}
-        </div>
-    );
-}
                     <BottomNav activeTab={activeTab} setTab={setActiveTab} />
                 </>
             )}
