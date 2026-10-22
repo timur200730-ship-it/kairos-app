@@ -1,0 +1,16 @@
+{
+  "name": "Kairos",
+  "short_name": "Kairos",
+  "description": "Ритуал, а не гонка. Трекер полезных привычек.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0B0D10",
+  "theme_color": "#0B0D10",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/10009/10009504.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
