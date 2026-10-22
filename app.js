@@ -26,12 +26,19 @@ const HABITS_LIST = [
 const MOOD_LABELS = { 1: 'Тяжело', 2: 'Так себе', 3: 'Обычно', 4: 'Хорошо', 5: 'Отлично' };
 
 function Logo() {
+    // ───────── УМЕНЬШЕННЫЙ ЛОГОТИП ДЛЯ ШАПКИ ─────────
+function HeaderLogo() {
     return (
-        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="1.5" />
-            <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
-            <circle cx="50" cy="50" r="4" fill="var(--accent)" />
-        </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="2" />
+                <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" />
+                <circle cx="50" cy="50" r="4" fill="var(--accent)" />
+            </svg>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '10px', fontWeight: '600', letterSpacing: '4px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                KAIROS
+            </span>
+        </div>
     );
 }
 
