@@ -1,6 +1,5 @@
 const { useState, useEffect } = React;
 
-// ───────── ИКОНКИ ─────────
 const Icons = {
     Sun: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>,
     Book: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
@@ -23,9 +22,9 @@ const HABITS_LIST = [
     { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff },
 ];
 
-function Logo() {
+function Logo({ size = 40 }) {
     return (
-        <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="48" stroke="var(--stroke)" strokeWidth="1.5" />
             <path d="M50 2 A48 48 0 0 1 98 50" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" />
             <circle cx="50" cy="50" r="4" fill="var(--accent)" />
@@ -33,13 +32,29 @@ function Logo() {
     );
 }
 
+// ───────── ГЛОБАЛЬНАЯ ШАПКА ─────────
+function GlobalHeader() {
+    return (
+        <div className="app-header fade-up">
+            <Logo size={24} />
+            <span className="app-header-name">KAIROS</span>
+        </div>
+    );
+}
+
+// ───────── УСТАНОВКА (ТОЛЬКО МОБИЛЬНЫЕ) ─────────
 function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [isIOS, setIsIOS] = useState(false);
     const [showIOSHint, setShowIOSHint] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
+        // Проверяем, мобильное ли устройство
+        const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        setIsMobile(mobileCheck);
+
         if (window.matchMedia('(display-mode: standalone)').matches) setIsStandalone(true);
         const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         setIsIOS(isIOSDevice);
@@ -57,7 +72,8 @@ function InstallPrompt() {
         }
     };
 
-    if (isStandalone || (!deferredPrompt && !isIOS)) return null;
+    // Если это компьютер, или уже установлено — ничего не показываем
+    if (!isMobile || isStandalone || (!deferredPrompt && !isIOS)) return null;
 
     return (
         <div style={{ position: 'fixed', top: '70px', right: '24px', zIndex: 100 }}>
@@ -100,7 +116,6 @@ function EnergyRing({ progress, accentColor, gradientColor }) {
     );
 }
 
-// ───────── ХЕЛПЕРЫ ─────────
 function getGreeting() {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'Доброе утро';
@@ -113,8 +128,6 @@ function getFormattedDate() {
     let dateStr = now.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
     return dateStr.charAt(0).toUpperCase() + dateStr.slice(1).replace('.', '');
 }
-
-// Функция для подсчета стрика (дней подряд)
 function calculateStreak() {
     let streak = 0;
     let d = new Date();
@@ -125,7 +138,6 @@ function calculateStreak() {
             streak++;
             d.setDate(d.getDate() - 1);
         } else {
-            // Если сегодня еще ничего не сделано, проверяем вчерашний день
             if (streak === 0 && d.toDateString() === new Date().toDateString()) {
                 d.setDate(d.getDate() - 1);
                 continue;
@@ -136,11 +148,14 @@ function calculateStreak() {
     return streak;
 }
 
-// ───────── ЭКРАНЫ ОНБОРДИНГА ─────────
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            <div className="brand-lockup fade-up"><Logo /><span className="brand-name">KAIROS</span></div>
+            {/* Здесь оставляем большой лого-блок, так как это первый экран */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '56px' }} className="fade-up">
+                <Logo size={48} />
+                <span style={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: '600', letterSpacing: '6px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>KAIROS</span>
+            </div>
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>Ритуал,<br/>а не гонка</h1>
             <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>Тихая сила ежедневных повторений.<br/>Одна привычка. Один день. Один шаг.</p>
             <div style={{ flex: 1 }}></div>
@@ -208,67 +223,40 @@ function ReminderScreen({ name, onFinish }) {
     );
 }
 
-// ───────── ЭКРАН РЕФЛЕКСИИ ─────────
 function ReflectionScreen({ onSave, onCancel }) {
     const [mood, setMood] = useState(null);
     const [note, setNote] = useState('');
-
     const handleSave = () => {
         if (mood) {
             const todayKey = new Date().toISOString().split('T')[0];
-            const reflectionData = { mood, note };
-            localStorage.setItem(`kairos_reflection_${todayKey}`, JSON.stringify(reflectionData));
+            localStorage.setItem(`kairos_reflection_${todayKey}`, JSON.stringify({ mood, note }));
             onSave();
         }
     };
-
     return (
         <div className="content">
             <button onClick={onCancel} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '16px', cursor: 'pointer', alignSelf: 'flex-start', marginBottom: '20px' }}>← Назад</button>
-            
             <h1 className="title fade-up" style={{ fontSize: 'clamp(32px, 9vw, 44px)' }}>Как прошёл<br/>день?</h1>
-            
             <div className="reflection-moods fade-up" style={{animationDelay: '0.1s'}}>
                 {[1, 2, 3, 4, 5].map((m) => (
                     <div key={m} className={`mood-circle ${mood === m ? 'selected' : ''}`} onClick={() => setMood(m)} />
                 ))}
             </div>
-
             <div className="fade-up" style={{animationDelay: '0.2s'}}>
-                <input 
-                    type="text" 
-                    className="input-underline" 
-                    placeholder="Одна мысль об этом дне..." 
-                    value={note} 
-                    onChange={(e) => setNote(e.target.value)}
-                />
+                <input type="text" className="input-underline" placeholder="Одна мысль об этом дне..." value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
-
             <div style={{ flex: 1 }}></div>
-            
-            <button 
-                className="btn-primary fade-up" 
-                style={{animationDelay: '0.3s', opacity: mood ? 1 : 0.4}} 
-                onClick={handleSave} 
-                disabled={!mood}
-            >
-                Сохранить
-            </button>
+            <button className="btn-primary fade-up" style={{animationDelay: '0.3s', opacity: mood ? 1 : 0.4}} onClick={handleSave} disabled={!mood}>Сохранить</button>
         </div>
     );
 }
 
-// ───────── ЭКРАН СЕГОДНЯ ─────────
 function TodayScreen({ name, themeData, onOpenReflection }) {
     const greeting = getGreeting();
     const dateString = getFormattedDate();
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
     const userHabits = HABITS_LIST.filter(h => userHabitsIds.includes(h.id));
-
-    const [completed, setCompleted] = useState(() => {
-        const todayKey = `kairos_checkins_${new Date().toISOString().split('T')[0]}`;
-        return JSON.parse(localStorage.getItem(todayKey) || '[]');
-    });
+    const [completed, setCompleted] = useState(() => JSON.parse(localStorage.getItem(`kairos_checkins_${new Date().toISOString().split('T')[0]}`) || '[]'));
 
     const toggleCheckin = (id) => {
         let newCompleted;
@@ -284,92 +272,48 @@ function TodayScreen({ name, themeData, onOpenReflection }) {
 
     return (
         <div className="content">
-            <div className="fade-up" style={{ marginTop: '20px' }}>
+            <div className="fade-up" style={{ marginTop: '10px' }}>
                 <span className="date-label">{dateString}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(36px, 10vw, 46px)', marginTop: '8px' }}>{greeting},<br/>{name}.</h1>
             </div>
-            
             <div className="fade-up" style={{animationDelay: '0.1s'}}>
                 <EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} />
             </div>
-
-            {/* Статистика под кольцом */}
             <div className="stats-row fade-up" style={{animationDelay: '0.15s'}}>
-                <div className="stat-item">
-                    <span className="stat-value">{streak}</span>
-                    <span className="stat-label">Стрик</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{totalCompleted}</span>
-                    <span className="stat-label">Выполнено</span>
-                </div>
+                <div className="stat-item"><span className="stat-value">{streak}</span><span className="stat-label">Стрик</span></div>
+                <div className="stat-item"><span className="stat-value">{totalCompleted}</span><span className="stat-label">Выполнено</span></div>
             </div>
-
             <div className="fade-up habits-list" style={{animationDelay: '0.2s'}}>
                 {userHabits.map(habit => {
                     const Icon = habit.icon;
                     const isCompleted = completed.includes(habit.id);
                     return (
                         <div key={habit.id} className={`habit-row ${isCompleted ? 'completed' : ''}`} onClick={() => toggleCheckin(habit.id)}>
-                            <div className="habit-row-left">
-                                <div className="habit-row-icon"><Icon /></div>
-                                <span className="habit-row-title">{habit.label}</span>
-                            </div>
+                            <div className="habit-row-left"><div className="habit-row-icon"><Icon /></div><span className="habit-row-title">{habit.label}</span></div>
                             <div className="habit-check"></div>
                         </div>
                     );
                 })}
             </div>
-
-            {/* Кнопка рефлексии */}
             <div className="fade-up" style={{animationDelay: '0.3s', marginTop: '16px'}}>
-                <button className="btn-ghost" onClick={onOpenReflection}>
-                    Вечерняя рефлексия
-                </button>
+                <button className="btn-ghost" onClick={onOpenReflection}>Вечерняя рефлексия</button>
             </div>
-
             <div style={{ height: '80px' }}></div>
         </div>
     );
 }
 
-// ───────── НИЖНЕЕ МЕНЮ ─────────
 function BottomNav({ activeTab, setTab }) {
-    const tabs = [
-        { id: 'today', icon: '◐' },
-        { id: 'challenges', icon: '◇' },
-        { id: 'profile', icon: '◯' }
-    ];
-
+    const tabs = [{ id: 'today', icon: '◐' }, { id: 'challenges', icon: '◇' }, { id: 'profile', icon: '◯' }];
     return (
-        <div style={{
-            position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
-            display: 'flex', gap: '8px', padding: '8px',
-            background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)',
-            border: '1px solid var(--stroke)', borderRadius: '99px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20
-        }}>
+        <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '8px', padding: '8px', background: 'rgba(19, 22, 27, 0.85)', backdropFilter: 'blur(20px)', border: '1px solid var(--stroke)', borderRadius: '99px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 20 }}>
             {tabs.map(tab => (
-                <button
-                    key={tab.id}
-                    onClick={() => setTab(tab.id)}
-                    style={{
-                        width: '56px', height: '56px', borderRadius: '50%',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease',
-                        background: activeTab === tab.id ? 'var(--accent)' : 'transparent',
-                        color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)',
-                        border: 'none'
-                    }}
-                >
-                    {tab.icon}
-                </button>
+                <button key={tab.id} onClick={() => setTab(tab.id)} style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', cursor: 'pointer', transition: 'all 0.3s ease', background: activeTab === tab.id ? 'var(--accent)' : 'transparent', color: activeTab === tab.id ? '#0B0D10' : 'var(--text-muted)', border: 'none' }}>{tab.icon}</button>
             ))}
         </div>
     );
 }
 
-// ───────── ГЛАВНЫЙ КОМПОНЕНТ ─────────
 function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('kairos_theme') || 'aurora');
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
@@ -389,12 +333,15 @@ function App() {
     return (
         <div className="screen">
             <InstallPrompt />
+            
             <div className="halo-container">
                 <div className="halo-1"></div>
                 <div className="halo-2"></div>
             </div>
 
-            {/* Скрываем меню и переключатель тем на экране рефлексии */}
+            {/* Показываем глобальную шапку с логотипом на всех экранах, КРОМЕ Welcome */}
+            {step !== 'welcome' && <GlobalHeader />}
+
             {step !== 'today' && step !== 'reflection' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
@@ -407,13 +354,7 @@ function App() {
             {step === 'name' && <NameScreen onNext={() => { setName(localStorage.getItem('kairos_name')); setStep('habits'); }} />}
             {step === 'habits' && <HabitsScreen name={name} onNext={() => setStep('reminder')} />}
             {step === 'reminder' && <ReminderScreen name={name} onFinish={() => setStep('today')} />}
-            
-            {step === 'reflection' && (
-                <ReflectionScreen 
-                    onSave={() => setStep('today')} 
-                    onCancel={() => setStep('today')} 
-                />
-            )}
+            {step === 'reflection' && <ReflectionScreen onSave={() => setStep('today')} onCancel={() => setStep('today')} />}
             
             {step === 'today' && (
                 <>
@@ -422,8 +363,8 @@ function App() {
                     </div>
                     
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} onOpenReflection={() => setStep('reflection')} />}
-                    {activeTab === 'challenges' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Челленджи</h1><p className="subtitle">Здесь будут твои 21-дневные пути.</p></div>}
-                    {activeTab === 'profile' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '40px' }}>Профиль</h1><p className="subtitle">Здесь будут настройки и статистика.</p></div>}
+                    {activeTab === 'challenges' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '20px' }}>Челленджи</h1><p className="subtitle">Здесь будут твои 21-дневные пути.</p></div>}
+                    {activeTab === 'profile' && <div className="content fade-up"><h1 className="title" style={{ marginTop: '20px' }}>Профиль</h1><p className="subtitle">Здесь будут настройки и статистика.</p></div>}
 
                     <div className="nav-gradient"></div>
                     <BottomNav activeTab={activeTab} setTab={setActiveTab} />
