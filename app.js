@@ -1,0 +1,59 @@
+const { useState, useEffect } = React;
+
+function App() {
+    // Берем тему из памяти или ставим Aurora по умолчанию
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem('kairos_theme') || 'aurora';
+    });
+
+    // При смене темы - применяем CSS-переменные
+    useEffect(() => {
+        const t = window.KAIROS_THEMES[theme];
+        const root = document.documentElement;
+        
+        root.style.setProperty('--accent', t.accent);
+        root.style.setProperty('--accent-glow', t.glow);
+        root.style.setProperty('--halo-1', t.halo1);
+        root.style.setProperty('--halo-2', t.halo2);
+        
+        // Сохраняем выбор в память браузера
+        localStorage.setItem('kairos_theme', theme);
+    }, [theme]);
+
+    return (
+        <div className="screen">
+            <div className="halo-container">
+                <div className="halo-1"></div>
+                <div className="halo-2"></div>
+            </div>
+
+            <div className="theme-switcher">
+                {Object.keys(window.KAIROS_THEMES).map(key => (
+                    <div 
+                        key={key}
+                        className={`theme-dot ${theme === key ? 'active' : ''}`}
+                        style={{ backgroundColor: window.KAIROS_THEMES[key].accent }}
+                        onClick={() => setTheme(key)}
+                    />
+                ))}
+            </div>
+
+            <div className="content">
+                <h1 className="title fade-up">Ритуал,<br/>а не гонка</h1>
+                <p className="subtitle fade-up" style={{animationDelay: '0.2s'}}>
+                    Тихая сила ежедневных повторений.<br/>
+                    Одна привычка. Один день. Один шаг.
+                </p>
+                
+                <div style={{ flex: 1 }}></div>
+                
+                <button className="btn-primary fade-up" style={{animationDelay: '0.4s'}}>
+                    Начать
+                </button>
+            </div>
+        </div>
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
