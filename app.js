@@ -127,34 +127,22 @@ function getDayOfChallenge(startDate) {
     return Math.floor(Math.abs(now - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-// Подсчет статистики для профиля
 function calculateStats() {
-    let totalCheckins = 0;
-    let currentStreak = 0;
+    let totalCheckins = 0; let currentStreak = 0;
     const challenges = getChallenges();
     const completedChallenges = challenges.filter(c => getDayOfChallenge(c.startDate) > c.length).length;
 
-    // Считаем тотал
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('kairos_checkins_')) {
-            totalCheckins += JSON.parse(localStorage.getItem(key) || '[]').length;
-        }
+        if (key.startsWith('kairos_checkins_')) totalCheckins += JSON.parse(localStorage.getItem(key) || '[]').length;
     }
 
-    // Считаем стрик (дни подряд)
     let checkDate = new Date();
     while (true) {
         const dateStr = checkDate.toISOString().split('T')[0];
         const dayCheckins = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '[]');
-        if (dayCheckins.length > 0) {
-            currentStreak++;
-            checkDate.setDate(checkDate.getDate() - 1); // Идем назад
-        } else {
-            break; // Если пусто - стрик прерван
-        }
+        if (dayCheckins.length > 0) { currentStreak++; checkDate.setDate(checkDate.getDate() - 1); } else break;
     }
-
     return { totalCheckins, currentStreak, completedChallenges };
 }
 
@@ -197,9 +185,7 @@ function HabitsScreen({ name, onNext }) {
             const firstHabitId = selected[0];
             const habit = HABITS_LIST.find(h => h.id === firstHabitId);
             const existing = getChallenges();
-            if (existing.length === 0) {
-                saveChallenges([{ id: Date.now().toString(), habitId: firstHabitId, title: habit.label, startDate: getTodayKey(), length: 21 }]);
-            }
+            if (existing.length === 0) saveChallenges([{ id: Date.now().toString(), habitId: firstHabitId, title: habit.label, startDate: getTodayKey(), length: 21 }]);
             onNext(); 
         } 
     };
@@ -211,8 +197,7 @@ function HabitsScreen({ name, onNext }) {
             <div className="habits-grid fade-up" style={{animationDelay: '0.2s'}}>
                 {HABITS_LIST.map((habit) => (
                     <div key={habit.id} className={`habit-card ${selected.includes(habit.id) ? 'selected' : ''}`} onClick={() => toggleHabit(habit.id)}>
-                        <div className="habit-icon"><habit.icon /></div>
-                        <span className="habit-label">{habit.label}</span>
+                        <div className="habit-icon"><habit.icon /></div><span className="habit-label">{habit.label}</span>
                     </div>
                 ))}
             </div>
@@ -260,13 +245,12 @@ function MentorNote({ userHabits, completed }) {
 
     return (
         <div className="fade-up mentor-note" style={{animationDelay: '0.15s'}}>
-            <div className="mentor-icon">◇</div>
-            <p className="mentor-text">{message}</p>
+            <div className="mentor-icon">◇</div><p className="mentor-text">{message}</p>
         </div>
     );
 }
 
-// ───────── ГЛАВНЫЙ ЭКРАН (СЕГОДНЯ) ─────────
+// ───────── ГЛАВНЫЙ ЭКРАН ─────────
 function TodayScreen({ name, themeData, onReflect }) {
     const greeting = getGreeting(); const dateString = getFormattedDate(); const todayKey = getTodayKey();
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
@@ -308,8 +292,8 @@ function TodayScreen({ name, themeData, onReflect }) {
     );
 }
 
-// ───────── ЭКРАН ЧЕЛЛЕНДЖЕЙ ─────────
-function ChallengesScreen({ onNewChallenge }) {
+// ───────── СПИСОК ЧЕЛЛЕНДЖЕЙ ─────────
+function ChallengesScreen({ onNewChallenge, onOpenChallenge }) {
     const [challenges, setChallenges] = useState(getChallenges());
     return (
         <div className="content">
@@ -322,7 +306,7 @@ function ChallengesScreen({ onNewChallenge }) {
                         const isCompleted = currentDay > challenge.length;
                         const habit = HABITS_LIST.find(h => h.id === challenge.habitId);
                         return (
-                            <div key={challenge.id} className="challenge-card fade-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                            <div key={challenge.id} className="challenge-card fade-up" style={{ animationDelay: `${index * 0.1}s` }} onClick={() => onOpenChallenge(challenge)}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <div style={{ color: 'var(--accent)' }}><habit.icon /></div>
@@ -357,6 +341,78 @@ function ChallengesScreen({ onNewChallenge }) {
     );
 }
 
+// ───────── ДЕТАЛИ ЧЕЛЛЕНДЖА ─────────
+function ChallengeDetailsScreen({ challenge, onBack, themeData }) {
+    const habit = HABITS_LIST.find(h => h.id === challenge.habitId);
+    
+    // Генерируем дни для календаря
+    const days = [];
+    const start = new Date(challenge.startDate);
+    let completedCount = 0;
+
+    for (let i = 0; i < challenge.length; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const checkins = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '[]');
+        const isDone = checkins.includes(challenge.habitId);
+        
+        if (isDone) completedCount++;
+        
+        days.push({
+            date: dateStr,
+            dayNum: i + 1,
+            completed: isDone,
+            isFuture: d > new Date()
+        });
+    }
+
+    const progress = Math.round((completedCount / challenge.length) * 100);
+    const freezes = JSON.parse(localStorage.getItem('kairos_freezes') || '[]');
+    
+    const handleFreeze = () => {
+        if (freezes.includes(getTodayKey())) {
+            alert("Вы уже использовали заморозку сегодня.");
+            return;
+        }
+        if (freezes.length >= 2) { // Простое ограничение в 2 штуки для MVP
+            alert("Вы исчерпали лимит заморозок.");
+            return;
+        }
+        localStorage.setItem('kairos_freezes', JSON.stringify([...freezes, getTodayKey()]));
+        alert("День заморожен! Стрик сохранен.");
+    };
+
+    return (
+        <div className="content">
+            <button onClick={onBack} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '14px', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '4px', alignSelf: 'flex-start', outline: 'none' }}>← Назад</button>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ color: 'var(--accent)' }}><habit.icon /></div>
+                <h1 className="title" style={{ fontSize: '32px', margin: 0 }}>{challenge.title}</h1>
+            </div>
+
+            <div className="fade-up"><EnergyRing progress={progress} accentColor={themeData.accent} gradientColor={themeData.halo2} /></div>
+
+            <div className="calendar-grid fade-up" style={{ animationDelay: '0.1s' }}>
+                {days.map(day => (
+                    <div key={day.date} className={`calendar-day ${day.completed ? 'completed' : ''} ${day.isFuture ? 'future' : ''}`}>
+                        {day.dayNum}
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ flex: 1, minHeight: '40px' }}></div>
+            
+            <button onClick={handleFreeze} className="ghost-btn fade-up" style={{ animationDelay: '0.2s', marginBottom: '16px' }}>
+                ❄️ Использовать заморозку
+            </button>
+            <button className="btn-primary fade-up" style={{ animationDelay: '0.3s' }} onClick={onBack}>Вернуться</button>
+        </div>
+    );
+}
+
+// ───────── НОВЫЙ ЧЕЛЛЕНДЖ ─────────
 function NewChallengeScreen({ onBack, onCreated }) {
     const [selectedHabit, setSelectedHabit] = useState(null); const [length, setLength] = useState(21);
     const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
@@ -392,7 +448,7 @@ function NewChallengeScreen({ onBack, onCreated }) {
     );
 }
 
-// ───────── ЭКРАН РЕФЛЕКСИИ ─────────
+// ───────── РЕФЛЕКСИЯ ─────────
 function ReflectionScreen({ onSave, onBack }) {
     const todayKey = getTodayKey(); const savedData = JSON.parse(localStorage.getItem(`kairos_reflection_${todayKey}`) || '{}');
     const [mood, setMood] = useState(savedData.mood || 0); const [note, setNote] = useState(savedData.note || '');
@@ -415,7 +471,7 @@ function ReflectionScreen({ onSave, onBack }) {
     );
 }
 
-// ───────── ЭКРАН ПРОФИЛЯ ─────────
+// ───────── ПРОФИЛЬ ─────────
 function ProfileScreen({ name, theme, setTheme }) {
     const stats = calculateStats();
     const initial = name ? name.charAt(0).toUpperCase() : 'K';
@@ -428,75 +484,42 @@ function ProfileScreen({ name, theme, setTheme }) {
         }
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `kairos_backup_${getTodayKey()}.json`;
-        a.click();
+        const a = document.createElement('a'); a.href = url; a.download = `kairos_backup_${getTodayKey()}.json`; a.click();
         URL.revokeObjectURL(url);
     };
 
     const handleReset = () => {
         if (window.confirm("Вы уверены? Это удалит все ваши привычки, челленджи и историю. Действие необратимо.")) {
-            localStorage.clear();
-            window.location.reload();
+            localStorage.clear(); window.location.reload();
         }
     };
 
     return (
         <div className="content">
             <HeaderLogo />
-            
             <div className="fade-up profile-header">
                 <div className="avatar">{initial}</div>
                 <h1 className="title" style={{ fontSize: '32px', marginTop: '16px' }}>{name}</h1>
             </div>
-
             <div className="fade-up stats-grid" style={{ animationDelay: '0.1s' }}>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.currentStreak}</span>
-                    <span className="stat-label">Стрик</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.totalCheckins}</span>
-                    <span className="stat-label">Выполнено</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.completedChallenges}</span>
-                    <span className="stat-label">Путей</span>
-                </div>
+                <div className="stat-item"><span className="stat-value">{stats.currentStreak}</span><span className="stat-label">Стрик</span></div>
+                <div className="stat-item"><span className="stat-value">{stats.totalCheckins}</span><span className="stat-label">Выполнено</span></div>
+                <div className="stat-item"><span className="stat-value">{stats.completedChallenges}</span><span className="stat-label">Путей</span></div>
             </div>
-
             <div className="fade-up settings-list" style={{ animationDelay: '0.2s' }}>
                 <div className="settings-header">Настройки</div>
-                
                 <div className="settings-row" style={{ cursor: 'default' }}>
                     <span>Тема оформления</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {Object.keys(window.KAIROS_THEMES).map(key => (
-                            <div 
-                                key={key} 
-                                onClick={() => setTheme(key)}
-                                style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: window.KAIROS_THEMES[key].accent, border: theme === key ? '2px solid white' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }} 
-                            />
+                            <div key={key} onClick={() => setTheme(key)} style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: window.KAIROS_THEMES[key].accent, border: theme === key ? '2px solid white' : '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s' }} />
                         ))}
                     </div>
                 </div>
-                
-                <div className="settings-row" onClick={handleExport}>
-                    <span>Экспорт данных</span>
-                    <span style={{ color: 'var(--text-muted)' }}>JSON ↓</span>
-                </div>
-
-                <div className="settings-row" onClick={() => alert("Kairos v1.0\nРитуал, а не гонка.\nСоздано с любовью.")}>
-                    <span>О приложении</span>
-                    <span style={{ color: 'var(--text-muted)' }}>v1.0</span>
-                </div>
-
-                <div className="settings-row" onClick={handleReset} style={{ color: '#FF7A59', marginTop: '16px' }}>
-                    <span>Сбросить прогресс</span>
-                </div>
+                <div className="settings-row" onClick={handleExport}><span>Экспорт данных</span><span style={{ color: 'var(--text-muted)' }}>JSON ↓</span></div>
+                <div className="settings-row" onClick={() => alert("Kairos v1.0\nРитуал, а не гонка.\nСоздано с любовью.")}><span>О приложении</span><span style={{ color: 'var(--text-muted)' }}>v1.0</span></div>
+                <div className="settings-row" onClick={handleReset} style={{ color: '#FF7A59', marginTop: '16px' }}><span>Сбросить прогресс</span></div>
             </div>
-            
             <div style={{ height: '100px' }}></div>
         </div>
     );
@@ -522,6 +545,7 @@ function App() {
     const [step, setStep] = useState(() => localStorage.getItem('kairos_onboarded') ? 'today' : 'welcome'); 
     const [name, setName] = useState(() => localStorage.getItem('kairos_name') || '');
     const [activeTab, setActiveTab] = useState('today');
+    const [selectedChallenge, setSelectedChallenge] = useState(null); // Стейт для деталей челленджа
     const themeData = window.KAIROS_THEMES[theme];
 
     useEffect(() => {
@@ -538,7 +562,7 @@ function App() {
             <InstallPrompt />
             <div className="halo-container"><div className="halo-1"></div><div className="halo-2"></div></div>
 
-            {step !== 'today' && step !== 'reflection' && step !== 'new-challenge' && (
+            {step !== 'today' && step !== 'reflection' && step !== 'new-challenge' && step !== 'challenge-details' && (
                 <div className="theme-switcher">
                     {Object.keys(window.KAIROS_THEMES).map(key => (
                         <div key={key} className={`theme-dot ${theme === key ? 'active' : ''}`} style={{ backgroundColor: window.KAIROS_THEMES[key].accent }} onClick={() => setTheme(key)} />
@@ -558,7 +582,7 @@ function App() {
                     </div>
                     
                     {activeTab === 'today' && <TodayScreen name={name} themeData={themeData} onReflect={() => setStep('reflection')} />}
-                    {activeTab === 'challenges' && <ChallengesScreen onNewChallenge={() => setStep('new-challenge')} />}
+                    {activeTab === 'challenges' && <ChallengesScreen onNewChallenge={() => setStep('new-challenge')} onOpenChallenge={(c) => { setSelectedChallenge(c); setStep('challenge-details'); }} />}
                     {activeTab === 'profile' && <ProfileScreen name={name} theme={theme} setTheme={setTheme} />}
 
                     <div className="nav-gradient"></div>
@@ -568,6 +592,7 @@ function App() {
 
             {step === 'reflection' && <ReflectionScreen onSave={() => setStep('today')} onBack={() => setStep('today')} />}
             {step === 'new-challenge' && <NewChallengeScreen onBack={() => setStep('today')} onCreated={() => setStep('today')} />}
+            {step === 'challenge-details' && <ChallengeDetailsScreen challenge={selectedChallenge} themeData={themeData} onBack={() => setStep('today')} />}
         </div>
     );
 }
