@@ -26,6 +26,13 @@ body {
     flex-direction: column;
     position: relative;
     overflow: hidden;
+    
+    /* Для красоты на десктопе: легкая рамка вокруг приложения */
+    max-width: 480px;
+    margin: 0 auto;
+    border-left: 1px solid var(--stroke);
+    border-right: 1px solid var(--stroke);
+    box-shadow: 0 0 80px rgba(0,0,0,0.8);
 }
 
 /* ───────── ОРЕОЛ (ВОЗВРАЩАЕМ) ───────── */
