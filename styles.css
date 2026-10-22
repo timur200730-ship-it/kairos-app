@@ -36,11 +36,11 @@ body {
 
 .screen {
     height: 100%;
+    display: flex;
+    flex-direction: column;
     position: relative;
-    overflow-y: auto; /* Скроллится только этот блок */
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch; /* Плавный нативный скролл на iOS */
-    touch-action: pan-y; /* Разрешает только вертикальные жесты */
+    overflow: hidden; /* Жестко запрещаем скроллить сам экран */
+}
 }
 
 /* ───────── ОРЕОЛ И ФОН ───────── */
@@ -69,8 +69,11 @@ body {
     z-index: 1;
     display: flex;
     flex-direction: column;
-    min-height: 100%;
-    padding: 60px 24px 180px 24px; /* Отступ 180px снизу, чтобы контент прокручивался выше меню */
+    height: 100%;
+    overflow-y: auto; /* Скролл теперь происходит ТОЛЬКО внутри контента */
+    -webkit-overflow-scrolling: touch; /* Плавный скролл на iOS */
+    /* Нижний отступ 140px = высота меню (100px) + запас */
+    padding: 60px 32px 140px 32px; 
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
@@ -213,14 +216,14 @@ body {
 .habit-row.completed .habit-check::after { content: ''; width: 6px; height: 10px; border: solid #0B0D10; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
 .habit-row.completed .habit-row-icon, .habit-row.completed .habit-row-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-muted); }
 
-/* ───────── ГРАДИЕНТ ЗАТУХАНИЯ ЗА МЕНЮ ───────── */
-.nav-gradient { 
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    height: 160px; 
-    background: linear-gradient(to top, var(--bg) 30%, transparent); 
-    z-index: 90; 
-    pointer-events: none; 
+/* Градиент для затухания контента */
+.nav-gradient {
+    position: absolute; /* Привязан к низу приложения, а не окна браузера */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(to top, var(--bg) 40%, transparent);
+    z-index: 10;
+    pointer-events: none; /* Пропускает клики сквозь себя */
 }
