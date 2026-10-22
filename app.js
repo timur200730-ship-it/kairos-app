@@ -17,9 +17,10 @@ function Logo() {
 function WelcomeScreen({ onStart }) {
     return (
         <div className="content">
-            {/* Логотип теперь аккуратно в левом верхнем углу контента */}
-            <div className="fade-up" style={{ marginBottom: '48px' }}>
+            {/* Бренд-лок: Иконка + Название */}
+            <div className="brand-lockup fade-up">
                 <Logo />
+                <span className="brand-name">KAIROS</span>
             </div>
 
             <h1 className="title fade-up" style={{animationDelay: '0.1s'}}>
