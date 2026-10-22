@@ -1,4 +1,76 @@
 const { useState, useEffect } = React;
+// ───────── ЛОГИКА УСТАНОВКИ (PWA) ─────────
+function InstallPrompt() {
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    const [isIOS, setIsIOS] = useState(false);
+    const [showIOSHint, setShowIOSHint] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        // Проверяем, не открыто ли уже как приложение
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            setIsStandalone(true);
+        }
+
+        // iOS детектор
+        const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        setIsIOS(isIOSDevice);
+
+        // Android / Windows детектор
+        const handler = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (isIOS) {
+            setShowIOSHint(!showIOSHint);
+            return;
+        }
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') setDeferredPrompt(null);
+        }
+    };
+
+    // Если уже установлено или нечего предлагать (на десктопе) - не показываем
+    if (isStandalone || (!deferredPrompt && !isIOS)) return null;
+
+    return (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100 }}>
+            <button 
+                onClick={handleInstallClick}
+                style={{
+                    background: 'var(--surface)', border: '1px solid var(--stroke)', 
+                    color: 'var(--text)', borderRadius: '99px', padding: '8px 16px',
+                    fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                    backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Установить
+            </button>
+
+            {/* Подсказка для iOS */}
+            {showIOSHint && (
+                <div style={{
+                    position: 'absolute', top: '50px', right: '0', width: '220px',
+                    background: 'var(--surface)', border: '1px solid var(--stroke)',
+                    padding: '12px', borderRadius: '16px', fontSize: '12px',
+                    color: 'var(--text-muted)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                    animation: 'fadeUp 0.3s ease'
+                }}>
+                    Нажмите <strong style={{color: 'var(--text)'}}>Поделиться</strong> внизу экрана, затем выберите <strong style={{color: 'var(--text)'}}>«На экран "Домой"»</strong>.
+                </div>
+            )}
+        </div>
+    );
+}
 
 // ───────── ИКОНКИ ─────────
 const Icons = {
