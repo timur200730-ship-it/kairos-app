@@ -9,12 +9,18 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior-y: none; /* Отключает "резинку" всей страницы на iPhone */
+}
+
 body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
-    height: 100dvh; /* Фикс для мобильных браузеров */
-    overflow: hidden;
     transition: background-color var(--transition);
 }
 
@@ -22,16 +28,15 @@ body {
 
 .screen {
     height: 100%;
-    display: flex;
-    flex-direction: column;
     position: relative;
-    overflow-y: auto; /* Включаем прокрутку, если контент не влезает */
+    overflow-y: auto; /* Скроллится только этот блок */
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* Плавный нативный скролл на iOS */
+    touch-action: pan-y; /* Разрешает только вертикальные жесты */
 }
 
-/* Утонченный ореол (меньше яркости, больше размытия) */
 .halo-container {
-    position: absolute;
+    position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     overflow: hidden;
     z-index: 0;
@@ -46,37 +51,25 @@ body {
     opacity: 0.6;
 }
 
-.halo-1 {
-    width: 500px; height: 500px;
-    top: -150px; left: -100px;
-    background: var(--halo-1);
-}
+.halo-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: var(--halo-1); }
+.halo-2 { width: 350px; height: 350px; top: 150px; right: -50px; background: var(--halo-2); }
 
-.halo-2 {
-    width: 350px; height: 350px;
-    top: 150px; right: -50px;
-    background: var(--halo-2);
-}
-
-/* Контент */
 .content {
     position: relative;
     z-index: 1;
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    /* Увеличиваем нижний отступ, чтобы контент не прятался за плавающим меню */
-    padding: 60px 32px 140px 32px; 
+    padding: 60px 24px 180px 24px; /* Большой отступ снизу, чтобы контент уходил за меню */
     max-width: 480px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* Типографика */
 .title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(42px, 11vw, 56px); /* Адаптивный размер */
+    font-size: clamp(42px, 11vw, 56px);
     line-height: 1.1;
     font-weight: 500;
     letter-spacing: -0.5px;
@@ -90,7 +83,6 @@ body {
     font-weight: 500;
 }
 
-/* Кнопка */
 .btn-primary {
     background: var(--accent);
     color: #0B0D10;
@@ -109,22 +101,13 @@ body {
 
 .btn-primary:active { transform: scale(0.96); }
 
-/* Анимации */
-.fade-up {
-    opacity: 0;
-    transform: translateY(15px);
-    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+.fade-up { opacity: 0; transform: translateY(15px); animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-@keyframes fadeUp {
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Переключатель тем */
 .theme-switcher {
     position: absolute;
     top: 20px; left: 50%;
-    transform: translateX(-50%); /* Строго по центру */
+    transform: translateX(-50%);
     display: flex;
     gap: 16px;
     z-index: 10;
@@ -135,455 +118,68 @@ body {
     backdrop-filter: blur(10px);
 }
 
-.theme-dot {
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    opacity: 0.3;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
+.theme-dot { width: 14px; height: 14px; border-radius: 50%; opacity: 0.3; cursor: pointer; transition: all 0.3s ease; }
+.theme-dot.active { opacity: 1; transform: scale(1.3); }
 
-.theme-dot.active {
-    opacity: 1;
-    transform: scale(1.3);
-}
-
-/* Поле ввода */
 .input-underline {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1.5px solid var(--stroke);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 20px;
-    padding: 12px 0;
-    outline: none;
-    transition: border-color 0.3s ease;
+    width: 100%; background: transparent; border: none;
+    border-bottom: 1.5px solid var(--stroke); color: var(--text);
+    font-family: 'Inter', sans-serif; font-size: 20px;
+    padding: 12px 0; outline: none; transition: border-color 0.3s ease;
 }
-
 .input-underline::placeholder { color: var(--text-muted); }
 .input-underline.focused { border-bottom-color: var(--accent); }
-/* ───────── БРЕНД-ЛОК (Лого + Название) ───────── */
-.brand-lockup {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 56px; /* Отделяем от заголовка воздухом */
-}
 
-.brand-name {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 5px; /* Широкий интервал = премиум */
-    color: var(--text-muted);
-    text-transform: uppercase;
-    padding-top: 2px; /* Легкая оптическая коррекция */
-}
-/* ───────── СЕТКА ПРИВЫЧЕК ───────── */
-.habits-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Две колонки */
-    gap: 12px;
-}
+/* Бренд-лок */
+.brand-lockup { display: flex; align-items: center; gap: 16px; margin-bottom: 56px; }
+.brand-name { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 5px; color: var(--text-muted); text-transform: uppercase; padding-top: 2px; }
 
+/* Сетка привычек */
+.habits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .habit-card {
-    background: var(--surface);
-    border: 1px solid var(--stroke);
-    border-radius: 20px;
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    text-align: center;
+    background: var(--surface); border: 1px solid var(--stroke);
+    border-radius: 16px; padding: 14px 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); text-align: center;
 }
+.habit-icon { width: 24px; height: 24px; color: var(--text-muted); transition: color 0.3s ease; }
+.habit-icon svg { width: 100%; height: 100%; }
+.habit-label { font-size: 13px; font-weight: 500; color: var(--text); }
+.habit-card.selected { background: var(--accent-glow); border-color: var(--accent); transform: scale(0.97); }
+.habit-card.selected .habit-icon, .habit-card.selected .habit-label { color: var(--accent); }
 
-/* Иконка привычки */
-.habit-icon {
-    width: 28px;
-    height: 28px;
-    color: var(--text-muted);
-    transition: color 0.3s ease;
-}
+/* Селектор времени */
+.time-picker-container { position: relative; display: flex; justify-content: center; align-items: center; margin-top: 60px; cursor: pointer; }
+.time-display { font-family: 'Cormorant Garamond', serif; font-size: 96px; line-height: 1; letter-spacing: 2px; color: var(--text); text-shadow: 0 0 40px var(--accent-glow); user-select: none; }
+.time-input-hidden { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; -webkit-appearance: none; font-size: 100px; }
 
-.habit-icon svg {
-    width: 100%;
-    height: 100%;
-}
+/* Экран Сегодня */
+.date-label { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+.ring-container { position: relative; display: flex; justify-content: center; align-items: center; margin: 40px 0; }
+.ring-svg { transform: rotate(-90deg); }
+.ring-bg { stroke: var(--stroke); fill: none; }
+.ring-progress { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.ring-content { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-number { font-family: 'Cormorant Garamond', serif; font-size: 64px; line-height: 1; color: var(--text); }
+.ring-label { font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 2px; color: var(--text-muted); font-weight: 600; margin-top: 8px; }
 
-/* Текст привычки */
-.habit-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-/* Состояние "Выбрано" */
-.habit-card.selected {
-    background: var(--accent-glow); /* Легкая заливка цветом темы */
-    border-color: var(--accent);
-    transform: scale(0.97); /* Легкое нажатие */
-}
-
-.habit-card.selected .habit-icon {
-    color: var(--accent); /* Иконка загорается */
-}
-
-.habit-card.selected .habit-label {
-    color: var(--accent);
-}
-/* ───────── ОБНОВЛЕННАЯ СЕТКА ПРИВЫЧЕК ───────── */
-.habits-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px; /* Чуть уменьшили отступ между карточками */
-}
-
-.habit-card {
-    background: var(--surface);
-    border: 1px solid var(--stroke);
-    border-radius: 16px; /* Сделали чуть аккуратнее */
-    padding: 14px 10px; /* Уменьшили внутренние отступы */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px; /* Уменьшили отступ между иконкой и текстом */
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    text-align: center;
-}
-
-.habit-icon {
-    width: 24px; /* Чуть уменьшили иконку */
-    height: 24px;
-    color: var(--text-muted);
-    transition: color 0.3s ease;
-}
-
-.habit-label {
-    font-size: 13px; /* Уменьшили шрифт */
-    font-weight: 500;
-    color: var(--text);
-}
-/* ───────── СЕЛЕКТОР ВРЕМЕНИ ───────── */
-.time-picker-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 60px;
-    cursor: pointer;
-}
-
-/* Огромные красивые цифры */
-.time-display {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 96px;
-    line-height: 1;
-    letter-spacing: 2px;
-    color: var(--text);
-    /* Мягкое свечение вокруг цифр */
-    text-shadow: 0 0 40px var(--accent-glow);
-    user-select: none;
-}
-
-/* Прозрачный нативный инпут поверх цифр */
-.time-input-hidden {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    /* Важно для Safari на iOS */
-    -webkit-appearance: none;
-    font-size: 100px; 
-}
-
-/* ───────── ЭКРАН СЕГОДНЯ ───────── */
-.date-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-}
-/* ───────── КОЛЬЦО ЭНЕРГИИ И СПИСОК ПРИВЫЧЕК ───────── */
-.ring-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 40px 0;
-}
-
-.ring-svg {
-    transform: rotate(-90deg); /* Начинаем рисовать с верхней точки */
-}
-
-.ring-bg {
-    stroke: var(--stroke);
-    fill: none;
-}
-
-.ring-progress {
-    fill: none;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1); /* Плавная анимация */
-}
-
-.ring-content {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.ring-number {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 64px;
-    line-height: 1;
-    color: var(--text);
-}
-
-.ring-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-top: 8px;
-}
-
-/* Список привычек */
-.habits-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 24px;
-}
-
+/* Список привычек (с фиксами для тапов) */
+.habits-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
 .habit-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--surface);
-    padding: 16px 20px;
-    border-radius: 20px;
-    border: 1px solid var(--stroke);
-    cursor: pointer;
-    transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); padding: 16px 20px;
+    border-radius: 20px; border: 1px solid var(--stroke);
+    cursor: pointer; transition: all 0.3s ease;
+    user-select: none; -webkit-user-select: none; touch-action: manipulation; /* Фикс нажатий */
 }
+.habit-row:active { transform: scale(0.98); }
+.habit-row-left { display: flex; align-items: center; gap: 16px; }
+.habit-row-icon { width: 24px; height: 24px; color: var(--text-muted); transition: color 0.3s ease; }
+.habit-row-title { font-size: 16px; font-weight: 500; color: var(--text); }
+.habit-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--stroke); display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.habit-row.completed .habit-check { background: var(--accent); border-color: var(--accent); }
+.habit-row.completed .habit-check::after { content: ''; width: 6px; height: 10px; border: solid #0B0D10; border-width: 0 2px 2px 0; transform: rotate(45deg); margin-bottom: 2px; }
+.habit-row.completed .habit-row-icon, .habit-row.completed .habit-row-title { color: var(--text-muted); text-decoration: line-through; text-decoration-color: var(--text-muted); }
 
-.habit-row:active {
-    transform: scale(0.98);
-}
-
-.habit-row-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.habit-row-icon {
-    width: 24px;
-    height: 24px;
-    color: var(--text-muted);
-    transition: color 0.3s ease;
-}
-
-.habit-row-title {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-/* Кружок-чекбокс */
-.habit-check {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid var(--stroke);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Состояние "Выполнено" */
-.habit-row.completed .habit-check {
-    background: var(--accent);
-    border-color: var(--accent);
-}
-
-.habit-row.completed .habit-check::after {
-    content: '';
-    width: 6px;
-    height: 10px;
-    border: solid #0B0D10;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    margin-bottom: 2px;
-}
-
-.habit-row.completed .habit-row-icon,
-.habit-row.completed .habit-row-title {
-    color: var(--text-muted); /* Приглушаем выполненное */
-    text-decoration: line-through;
-    text-decoration-color: var(--text-muted);
-}
-/* ───────── ТАБ-БАР ───────── */
-.tab-bar {
-    position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 4px;
-    padding: 6px;
-    background: rgba(19,22,27,0.85);
-    border: 1px solid var(--stroke);
-    border-radius: 99px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    z-index: 100;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-}
-
-.tab-item {
-    width: 60px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 99px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: var(--text-muted);
-    font-size: 20px;
-    user-select: none;
-    font-family: 'Inter', sans-serif;
-}
-
-.tab-item.active {
-    background: var(--accent-glow);
-    color: var(--accent);
-}
-
-.tab-item:active {
-    transform: scale(0.92);
-}
-
-/* ───────── КАРТОЧКА ЧЕЛЛЕНДЖА ───────── */
-.challenge-card {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background: var(--surface);
-    border: 1px solid var(--stroke);
-    border-radius: 24px;
-    padding: 20px;
-    margin-top: 24px;
-}
-
-.challenge-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.challenge-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px;
-    line-height: 1.1;
-    color: var(--text);
-    font-weight: 500;
-}
-
-.challenge-subtitle {
-    font-size: 13px;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.challenge-streak {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    color: var(--accent);
-    text-transform: uppercase;
-}
-
-/* ───────── ВЕХИ ───────── */
-.milestones-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-top: 40px;
-    margin-bottom: 20px;
-    display: block;
-}
-
-.milestones {
-    display: flex;
-    gap: 32px;
-    justify-content: flex-start;
-    padding-left: 4px;
-}
-
-.milestone-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.milestone-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid var(--stroke);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    background: transparent;
-}
-
-.milestone-dot.reached {
-    background: var(--accent);
-    border-color: var(--accent);
-    box-shadow: 0 0 16px var(--accent-glow);
-}
-
-.milestone-label {
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-.milestone-dot.reached + .milestone-label {
-    color: var(--text);
-}
-/* Градиент для плавного затухания контента за нижним меню */
-.nav-gradient {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 160px; /* Высота затухания */
-    background: linear-gradient(to top, var(--bg) 30%, transparent);
-    z-index: 90;
-    pointer-events: none; /* Чтобы градиент не мешал нажимать на кнопки */
-}
+/* Градиент для плавного затухания контента за меню */
+.nav-gradient { position: fixed; bottom: 0; left: 0; right: 0; height: 160px; background: linear-gradient(to top, var(--bg) 30%, transparent); z-index: 90; pointer-events: none; }
