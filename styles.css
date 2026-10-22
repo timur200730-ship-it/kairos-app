@@ -52,16 +52,21 @@ body {
     opacity: 0.6;
 }
 
+/* Убираем тяжелый blur, используем чистый радиальный градиент */
 .halo-1 {
-    width: 600px; height: 600px;
-    top: -200px; left: -100px;
-    background: var(--halo-1);
+    position: absolute;
+    width: 800px; height: 800px;
+    top: -300px; left: -150px;
+    background: radial-gradient(circle, var(--halo-1) 0%, transparent 70%);
+    transition: background var(--transition);
 }
 
 .halo-2 {
-    width: 400px; height: 400px;
-    top: 100px; right: -50px; /* Сдвинули вправо для баланса */
-    background: var(--halo-2);
+    position: absolute;
+    width: 600px; height: 600px;
+    top: 150px; right: -200px;
+    background: radial-gradient(circle, var(--halo-2) 0%, transparent 70%);
+    transition: background var(--transition);
 }
 
 /* ───────── ГЛОБАЛЬНАЯ ШАПКА (ЛОГО) ───────── */
