@@ -437,3 +437,141 @@ body {
     text-decoration: line-through;
     text-decoration-color: var(--text-muted);
 }
+/* ───────── ТАБ-БАР ───────── */
+.tab-bar {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: rgba(19,22,27,0.85);
+    border: 1px solid var(--stroke);
+    border-radius: 99px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.tab-item {
+    width: 60px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--text-muted);
+    font-size: 20px;
+    user-select: none;
+    font-family: 'Inter', sans-serif;
+}
+
+.tab-item.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+}
+
+.tab-item:active {
+    transform: scale(0.92);
+}
+
+/* ───────── КАРТОЧКА ЧЕЛЛЕНДЖА ───────── */
+.challenge-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--stroke);
+    border-radius: 24px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.challenge-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.challenge-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    line-height: 1.1;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.challenge-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.challenge-streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    text-transform: uppercase;
+}
+
+/* ───────── ВЕХИ ───────── */
+.milestones-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.milestones {
+    display: flex;
+    gap: 32px;
+    justify-content: flex-start;
+    padding-left: 4px;
+}
+
+.milestone-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.milestone-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--stroke);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: transparent;
+}
+
+.milestone-dot.reached {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.milestone-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.milestone-dot.reached + .milestone-label {
+    color: var(--text);
+}
