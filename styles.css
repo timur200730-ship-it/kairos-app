@@ -576,3 +576,14 @@ body {
 .milestone-dot.reached + .milestone-label {
     color: var(--text);
 }
+/* Градиент для плавного затухания контента за нижним меню */
+.nav-gradient {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 160px; /* Высота затухания */
+    background: linear-gradient(to top, var(--bg) 30%, transparent);
+    z-index: 90;
+    pointer-events: none; /* Чтобы градиент не мешал нажимать на кнопки */
+}
