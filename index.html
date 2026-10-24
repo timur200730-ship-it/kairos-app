@@ -2,32 +2,135 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kairos</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Inter:wght@500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <!-- Добавлен viewport-fit=cover для полноэкранного режима на смартфонах с вырезом экрана -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kairos — Карманный наставник и трекер осознанных привычек</title>
+    <meta name="description" content="Авторское пространство для формирования привычек, управления энергией и личной эффективности в ритме Кайроса.">
+    
+    <!-- PWA & Настройки мобильного полноэкранного режима (iOS / Android) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0B0D10">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kairos">
+    <link rel="apple-touch-icon" href="icon-192.png">
     
-    <!-- Подключаем React и Babel (компилятор) через CDN -->
+    <!-- Расширенная типографика: добавлен курсив для цитат наставника и базовый 400 для читаемости -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Встроенные стили мгновенного экрана загрузки (пока компилируются React и Babel) -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0B0D10;
+            color: #F3F4F6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+        .kairos-boot-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+            background: radial-gradient(circle at 50% 35%, rgba(212, 175, 55, 0.08) 0%, rgba(11, 13, 16, 1) 70%);
+        }
+        .kairos-boot-emblem {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            position: relative;
+            animation: kairosPulse 2.4s infinite ease-in-out;
+        }
+        .kairos-boot-emblem::after {
+            content: "✧";
+            color: #D4AF37;
+            font-size: 22px;
+        }
+        .kairos-boot-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 34px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #D4AF37;
+            margin: 0 0 10px 0;
+        }
+        .kairos-boot-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 18px;
+            color: rgba(243, 244, 246, 0.65);
+            max-width: 280px;
+            line-height: 1.4;
+            margin: 0;
+        }
+        @keyframes kairosPulse {
+            0%, 100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.2); }
+            50% { transform: scale(1.04); box-shadow: 0 0 24px 4px rgba(212, 175, 55, 0.15); }
+        }
+    </style>
+
+    <!-- Основные стили приложения -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Подключаем React и Babel через CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-    <div id="root"></div>
+    <!-- Внутри root находится прелоадер, который React автоматически заменит при монтировании -->
+    <div id="root">
+        <div class="kairos-boot-screen">
+            <div class="kairos-boot-emblem"></div>
+            <h1 class="kairos-boot-title">Kairos</h1>
+            <p class="kairos-boot-subtitle">Настраиваем фокус на благоприятный момент...</p>
+        </div>
+    </div>
     
+    <!-- Вспомогательный скрипт: глобальные утилиты тактильного отклика и перехват PWA-установки -->
+    <script>
+        // Глобальная функция мягкого тактильного отклика для мобильных устройств
+        window.triggerHaptic = function(pattern = 35) {
+            if (window.navigator && window.navigator.vibrate) {
+                try {
+                    window.navigator.vibrate(pattern);
+                } catch (e) {}
+            }
+        };
+
+        // Сохраняем событие установки PWA, чтобы вызвать его по кнопке внутри интерфейса
+        window.deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredInstallPrompt = e;
+            window.dispatchEvent(new CustomEvent('kairos-pwa-ready'));
+        });
+
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+        }
+    </script>
+
     <!-- Подключаем наши скрипты -->
     <script src="themes.js"></script>
     <script type="text/babel" src="app.js"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js');
-    });
-  }
-</script>
 </body>
 </html>
