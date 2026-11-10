@@ -266,8 +266,8 @@ function SosModal({ onClose, onEnableGentleMode }) {
     const why = localStorage.getItem('kairos_why') || '';
 
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(6, 8, 10, 0.86)', backdropFilter: 'blur(12px)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
-            <div style={{ background: 'var(--surface)', width: '100%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto', padding: '24px', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease', boxSizing: 'border-box' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(6, 8, 10, 0.88)', backdropFilter: 'blur(12px)', zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+            <div style={{ background: 'var(--surface)', width: '100%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto', padding: '24px 24px calc(44px + env(safe-area-inset-bottom, 24px)) 24px', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease', boxSizing: 'border-box' }} onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 600 }}>Капсула присутствия</span>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
