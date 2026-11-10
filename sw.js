@@ -2,6 +2,7 @@ const CACHE_NAME = 'kairos-offline-v3';
 
 // Все локальные файлы + внешние библиотеки React и Babel сразу кладем в кэш при установке!
 const PRECACHE_URLS = [
+    './icon.svg',
     './',
     './index.html',
     './styles.css',
