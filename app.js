@@ -27,24 +27,7 @@ const BASE_HABITS_LIST = [
     { id: 'sleep', label: 'Сон вовремя', icon: Icons.Moon, type: 'binary', baseDesc: 'Лечь до 23:00 без экрана', minDesc: 'Отложить телефон в кровати' },
     { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff, type: 'binary', baseDesc: 'Утро и вечер без ленты', minDesc: 'Первые 15 минут утра без телефона' },
 ];
-<div className="fade-up" style={{ padding: '12px 14px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--stroke)', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600 }}>⚓ Якорь запуска (Триггер)</span>
-                    {anchorSaved && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>✓ Сохранено</span>}
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                        type="text"
-                        value={anchorText}
-                        onChange={(e) => setAnchorText(e.target.value)}
-                        placeholder="После того как я..."
-                        style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '10px', padding: '8px 12px', color: 'var(--text)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' }}
-                    />
-                    <button onClick={handleSaveAnchor} style={{ background: 'var(--accent)', color: '#0B0D10', border: 'none', borderRadius: '10px', padding: '0 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                        ОК
-                    </button>
-                </div>
-            </div>
+
 // Получение полного списка привычек (включая авторскую привычку пользователя, если она создана)
 function getAllHabitsList() {
     const customRaw = localStorage.getItem('kairos_custom_habit');
@@ -98,7 +81,7 @@ function InstallPrompt() {
     const [showHint, setShowHint] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
 
-    (() => {
+    useEffect(() => {
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
             setIsStandalone(true);
         }
@@ -213,6 +196,8 @@ function getTodayCheckins() {
 function saveTodayCheckins(data) {
     localStorage.setItem(`kairos_checkins_${getTodayKey()}`, JSON.stringify(data));
 }
+
+// Якоря (триггеры привычек)
 const DEFAULT_ANCHORS = {
     exercise: 'Сразу после пробуждения и стакана воды',
     reading: 'После того как налью утренний чай/кофе или перед сном',
@@ -234,6 +219,7 @@ function saveHabitAnchor(habitId, text) {
     saved[habitId] = text.trim();
     localStorage.setItem('kairos_anchors', JSON.stringify(saved));
 }
+
 // Умный подсчет статистики с учетом «Заморозок» (kairos_freezes)
 function calculateStats() {
     let totalCheckins = 0;
@@ -250,6 +236,27 @@ function calculateStats() {
             else totalCheckins += Object.values(val).filter(v => v >= 1).length;
         }
     }
+
+    let checkDate = new Date();
+    const todayStr = getTodayKey();
+    while (true) {
+        const dateStr = checkDate.toISOString().split('T')[0];
+        const dayCheckinsRaw = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}');
+        const dayCheckins = Array.isArray(dayCheckinsRaw) ? dayCheckinsRaw : Object.keys(dayCheckinsRaw).filter(k => dayCheckinsRaw[k] >= 1);
+        const isFrozen = freezes.includes(dateStr);
+
+        if (dayCheckins.length > 0 || isFrozen) {
+            currentStreak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+        } else if (dateStr === todayStr) {
+            checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+            break;
+        }
+    }
+    return { totalCheckins, currentStreak, completedChallenges };
+}
+
 // Анализ связи между привычками и уровнем энергии/настроения за 30 дней
 function calculateEnergyInsight(habitId = null) {
     const allHabits = getAllHabitsList();
@@ -303,26 +310,7 @@ function calculateEnergyInsight(habitId = null) {
 
     return bestHabit;
 }
-    let checkDate = new Date();
-    const todayStr = getTodayKey();
-    while (true) {
-        const dateStr = checkDate.toISOString().split('T')[0];
-        const dayCheckinsRaw = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}');
-        const dayCheckins = Array.isArray(dayCheckinsRaw) ? dayCheckinsRaw : Object.keys(dayCheckinsRaw).filter(k => dayCheckinsRaw[k] >= 1);
-        const isFrozen = freezes.includes(dateStr);
 
-        if (dayCheckins.length > 0 || isFrozen) {
-            currentStreak++;
-            checkDate.setDate(checkDate.getDate() - 1);
-        } else if (dateStr === todayStr) {
-            // Если сегодня еще ничего не отмечено, проверяем вчерашний день, чтобы не обнулять стрик с утра
-            checkDate.setDate(checkDate.getDate() - 1);
-        } else {
-            break;
-        }
-    }
-    return { totalCheckins, currentStreak, completedChallenges };
-}
 // Сбор данных за последние 7 дней для «Зеркала недели»
 function calculateWeeklyMirror() {
     const allHabits = getAllHabitsList();
@@ -421,7 +409,6 @@ function WeeklyMirrorModal({ onClose, name }) {
                     «{mentorSummary}»
                 </div>
 
-                {/* Цифры за 7 дней */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
                     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--stroke)', borderRadius: '14px', padding: '12px 8px', textAlign: 'center' }}>
                         <span style={{ display: 'block', fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', color: 'var(--accent)', lineHeight: 1 }}>{data.activeDays}/7</span>
@@ -443,7 +430,6 @@ function WeeklyMirrorModal({ onClose, name }) {
                     </div>
                 )}
 
-                {/* Копилка благодарностей за неделю */}
                 <div style={{ marginBottom: '20px' }}>
                     <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600, marginBottom: '8px' }}>
                         ✨ Твои поводы для гордости за 7 дней:
@@ -464,7 +450,6 @@ function WeeklyMirrorModal({ onClose, name }) {
                     )}
                 </div>
 
-                {/* Намерение на следующую неделю */}
                 <div style={{ padding: '14px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--stroke)', marginBottom: '18px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600 }}>🧭 Главный фокус на новую неделю</span>
@@ -495,7 +480,7 @@ function WeeklyMirrorModal({ onClose, name }) {
 function SosModal({ onClose, onEnableGentleMode }) {
     const capsules = (window.KAIROS_MENTOR && window.KAIROS_MENTOR.sosCapsules) || [];
     const [activeCapsule, setActiveCapsule] = useState(null);
-    const [breathStep, setBreathStep] = useState(null); // 'inhale' | 'hold' | 'exhale'
+    const [breathStep, setBreathStep] = useState(null);
     const [breathSeconds, setBreathSeconds] = useState(0);
 
     useEffect(() => {
@@ -549,7 +534,6 @@ function SosModal({ onClose, onEnableGentleMode }) {
                             ))}
                         </div>
 
-                        {/* Дыхательный тренажер 4-4-6 */}
                         <div style={{ padding: '16px', borderRadius: '18px', background: 'rgba(255,255,255,0.02)', border: '1px dashed var(--stroke)', textAlign: 'center' }}>
                             {!breathStep ? (
                                 <>
@@ -863,7 +847,6 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
         setCompleted(newCompleted);
         saveTodayCheckins(newCompleted);
 
-        // Живой тактильный и текстовый отклик при закрытии привычки
         if (newVal >= target && current < target) {
             if (window.triggerHaptic) window.triggerHaptic([35, 50, 35]);
             const newDoneCount = userHabits.filter(h => {
@@ -935,14 +918,15 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
 
             <MentorNote userHabits={userHabits} completed={completed} name={name} gentleMode={gentleMode} energyLevel={energyLevel} />
 
-            {/* Панель управления режимом дня: Бережный минимум + SOS */}
+            {/* Панель управления режимом дня: Бережный минимум + Зеркало недели + SOS */}
             <div className="fade-up" style={{ animationDelay: '0.18s', display: 'flex', gap: '8px', marginTop: '14px', marginBottom: '4px' }}>
-                <button onClick={() => toggleGentleMode()} style={{ flex: 1, padding: '10px 12px', borderRadius: '14px', border: gentleMode ? '1px solid var(--accent)' : '1px solid var(--stroke)', background: gentleMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)', color: gentleMode ? 'var(--accent)' : 'var(--text-muted)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.25s' }}>
-                    <span>{gentleMode ? '🪶 Бережный минимум: ВКЛ' : '⚡ Режим: Обычный шаг'}</span>
+                <button onClick={() => toggleGentleMode()} style={{ flex: 1, padding: '10px 10px', borderRadius: '14px', border: gentleMode ? '1px solid var(--accent)' : '1px solid var(--stroke)', background: gentleMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)', color: gentleMode ? 'var(--accent)' : 'var(--text-muted)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', transition: 'all 0.25s' }}>
+                    <span>{gentleMode ? '🪶 Минимум: ВКЛ' : '⚡ Обычный шаг'}</span>
                 </button>
                 <button onClick={() => { if (window.triggerHaptic) window.triggerHaptic(25); setShowMirror(true); }} style={{ padding: '10px 12px', borderRadius: '14px', border: isSunday ? '1px solid var(--accent)' : '1px solid var(--stroke)', background: 'var(--surface)', color: isSunday ? 'var(--accent)' : 'var(--text)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <span>🪞 7 дн.</span>
-                <button onClick={() => { if (window.triggerHaptic) window.triggerHaptic(25); setShowSos(true); }} style={{ padding: '10px 14px', borderRadius: '14px', border: '1px solid var(--stroke)', background: 'var(--surface)', color: 'var(--text)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                </button>
+                <button onClick={() => { if (window.triggerHaptic) window.triggerHaptic(25); setShowSos(true); }} style={{ padding: '10px 12px', borderRadius: '14px', border: '1px solid var(--stroke)', background: 'var(--surface)', color: 'var(--text)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <span>🧭 Опора</span>
                 </button>
             </div>
@@ -960,6 +944,7 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                     const currentVal = completed[habit.id] || 0;
                     const isDone = currentVal >= target;
                     const descText = gentleMode ? (habit.minDesc || habit.baseDesc) : habit.baseDesc;
+                    const anchor = getHabitAnchor(habit.id);
                     let longPressTimer;
                     const handlePressIn = () => { if (habit.type === 'counter') longPressTimer = setTimeout(() => longPressCheckin(habit), 500); };
                     const handlePressOut = () => { if (longPressTimer) clearTimeout(longPressTimer); };
@@ -970,22 +955,14 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                                 <div className="habit-row-icon"><habit.icon /></div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <span className="habit-row-title">{habit.label}</span>
-                                    {descText && (ntSize: '11px', color: gentleMode ? 
-                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    <span className="habit-row-title">{habit.label}</span>
                                     {descText && (
                                         <span style={{ fontSize: '11px', color: gentleMode ? 'var(--accent)' : 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.2px' }}>
                                             {gentleMode ? `Минимум: ${descText}` : descText}
                                         </span>
                                     )}
-                                    {!isDone && getHabitAnchor(habit.id) && (
+                                    {!isDone && anchor && (
                                         <span style={{ fontSize: '10px', color: 'var(--text-muted)', opacity: 0.78, fontStyle: 'italic', marginTop: '1px' }}>
-                                            ⚓ {getHabitAnchor(habit.id)}
-                                        </span>
-                                    )}
-                                </div>     
-                                        <span style={{ fo'var(--accent)' : 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.2px' }}>
-                                            {gentleMode ? `Минимум: ${descText}` : descText}
+                                            ⚓ {anchor}
                                         </span>
                                     )}
                                 </div>
@@ -1022,7 +999,7 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                     name={name}
                     onClose={() => setShowMirror(false)}
                 />
-            )}    
+            )}
         </div>
     );
 }
@@ -1030,15 +1007,17 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
 // ───────── ДЕТАЛИ ПРИВЫЧКИ ─────────
 function HabitDetailsScreen({ habit, onBack }) {
     const [noteDate, setNoteDate] = useState(null);
+    const [noteText, setNoteText] = useState('');
     const [anchorText, setAnchorText] = useState(() => getHabitAnchor(habit.id));
     const [anchorSaved, setAnchorSaved] = useState(false);
+
     const handleSaveAnchor = () => {
         if (window.triggerHaptic) window.triggerHaptic(25);
         saveHabitAnchor(habit.id, anchorText);
         setAnchorSaved(true);
         setTimeout(() => setAnchorSaved(false), 2000);
     };
-    const [noteText, setNoteText] = useState('');
+
     const freezes = JSON.parse(localStorage.getItem('kairos_freezes') || '[]');
     const days = [];
     let completedDaysCount = 0;
@@ -1089,12 +1068,32 @@ function HabitDetailsScreen({ habit, onBack }) {
                 <h1 className="title" style={{ fontSize: '32px', margin: 0 }}>{habit.label}</h1>
             </div>
 
-            <div className="fade-up" style={{ padding: '12px 14px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--stroke)', marginBottom: '20px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+            <div className="fade-up" style={{ padding: '12px 14px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--stroke)', marginBottom: '14px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 <div><strong style={{ color: 'var(--text)' }}>Обычный ритм:</strong> {habit.baseDesc}</div>
                 <div><strong style={{ color: 'var(--accent)' }}>Бережный минимум:</strong> {habit.minDesc}</div>
             </div>
 
-            <div className="fade-up" style={{ display: 'flex', gap: '16px', marginBottom: '28px' }}>
+            {/* Настройка Якоря запуска (Триггера) */}
+            <div className="fade-up" style={{ padding: '12px 14px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--stroke)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600 }}>⚓ Якорь запуска (Триггер)</span>
+                    {anchorSaved && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>✓ Сохранено</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                        type="text"
+                        value={anchorText}
+                        onChange={(e) => setAnchorText(e.target.value)}
+                        placeholder="После того как я..."
+                        style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '10px', padding: '8px 12px', color: 'var(--text)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' }}
+                    />
+                    <button onClick={handleSaveAnchor} style={{ background: 'var(--accent)', color: '#0B0D10', border: 'none', borderRadius: '10px', padding: '0 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                        ОК
+                    </button>
+                </div>
+            </div>
+
+            <div className="fade-up" style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
                 <div style={{ flex: 1, background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--stroke)', textAlign: 'center' }}>
                     <span style={{ display: 'block', fontFamily: 'Cormorant Garamond', fontSize: '32px', color: 'var(--accent)' }}>{realStreak}</span>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Дней подряд</span>
@@ -1104,6 +1103,7 @@ function HabitDetailsScreen({ habit, onBack }) {
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>За 30 дней</span>
                 </div>
             </div>
+
             {(() => {
                 const insight = calculateEnergyInsight(habit.id);
                 if (!insight || insight.avgWith === null) {
@@ -1125,6 +1125,7 @@ function HabitDetailsScreen({ habit, onBack }) {
                     </div>
                 );
             })()}
+
             <p className="subtitle fade-up" style={{ marginBottom: '16px' }}>Нажми на день в календаре, чтобы оставить заметку или инсайт:</p>
             <div className="calendar-grid fade-up" style={{ animationDelay: '0.1s', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
                 {days.map(day => (
@@ -1136,8 +1137,8 @@ function HabitDetailsScreen({ habit, onBack }) {
             <div style={{ flex: 1 }}></div>
 
             {noteDate && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'flex-end' }} onClick={() => setNoteDate(null)}>
-                    <div style={{ background: 'var(--surface)', width: '100%', padding: '24px', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 999, display: 'flex', alignItems: 'flex-end' }} onClick={() => setNoteDate(null)}>
+                    <div style={{ background: 'var(--surface)', width: '100%', padding: '24px 24px calc(36px + env(safe-area-inset-bottom, 20px)) 24px', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease' }} onClick={e => e.stopPropagation()}>
                         <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>Заметка за {noteDate}</h3>
                         <textarea className="note-input" placeholder="Что помогло выполнить привычку или что помешало?" value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={3} style={{ width: '100%', backgroundColor: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '16px', padding: '16px', color: 'var(--text)', fontSize: '15px', fontFamily: 'Inter, sans-serif', outline: 'none', resize: 'none', boxSizing: 'border-box' }} />
                         <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
@@ -1441,6 +1442,7 @@ function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
                 <div className="stat-item"><span className="stat-value">{stats.totalCheckins}</span><span className="stat-label">Шагов</span></div>
                 <div className="stat-item"><span className="stat-value">{stats.completedChallenges}</span><span className="stat-label">Путей</span></div>
             </div>
+
             {(() => {
                 const topInsight = calculateEnergyInsight();
                 if (!topInsight || topInsight.avgWith === null) return null;
@@ -1451,6 +1453,7 @@ function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
                     </div>
                 );
             })()}
+
             <div className="fade-up settings-list" style={{ animationDelay: '0.2s' }}>
                 <div className="settings-header">Настройки пространства</div>
 
@@ -1473,14 +1476,15 @@ function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
                         <div style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }}><Icons.Bell /></div>
                         <span>Напоминания ({localStorage.getItem('kairos_time') || '09:00'})</span>
                     </div>
-                    <div className="settings-row" onClick={toggleSound}>
+                    <span style={{ color: notifPermission === 'granted' ? 'var(--accent)' : 'var(--text-muted)' }}>
+                        {notifPermission === 'granted' ? 'Включены' : 'Включить'}
+                    </span>
+                </div>
+
+                <div className="settings-row" onClick={toggleSound}>
                     <span>Звуковой отклик (Атмосфера)</span>
                     <span style={{ color: soundEnabled ? 'var(--accent)' : 'var(--text-muted)' }}>
                         {soundEnabled ? 'Включен' : 'Выключен'}
-                    </span>
-                </div>    
-                    <span style={{ color: notifPermission === 'granted' ? 'var(--accent)' : 'var(--text-muted)' }}>
-                        {notifPermission === 'granted' ? 'Включены' : 'Включить'}
                     </span>
                 </div>
 
@@ -1554,7 +1558,6 @@ function App() {
         localStorage.setItem('kairos_theme', theme);
     }, [theme, themeData]);
 
-    // Логика Push-уведомлений (проверка каждые 30 секунд)
     useEffect(() => {
         if (!('Notification' in window)) return;
         const checkTime = setInterval(() => {
@@ -1568,7 +1571,7 @@ function App() {
                 if (currentTime === reminderTime && lastNotified !== today) {
                     new Notification('Kairos · Момент настал', {
                         body: `${localStorage.getItem('kairos_name') || 'Друг'}, время для твоего ритуала. Один осознанный шаг сегодня.`,
-                        icon: './icon-192.png'
+                        icon: './icon.svg'
                     });
                     localStorage.setItem('kairos_last_notified', today);
                 }
