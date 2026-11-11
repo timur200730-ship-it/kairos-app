@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kairos-offline-v4';
+const CACHE_NAME = 'kairos-offline-v5';
 
 const PRECACHE_URLS = [
     './',
