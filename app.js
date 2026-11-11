@@ -323,6 +323,173 @@ function calculateEnergyInsight(habitId = null) {
     }
     return { totalCheckins, currentStreak, completedChallenges };
 }
+// Сбор данных за последние 7 дней для «Зеркала недели»
+function calculateWeeklyMirror() {
+    const allHabits = getAllHabitsList();
+    const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
+    const userHabits = allHabits.filter(h => userHabitsIds.includes(h.id));
+
+    let totalDoneSteps = 0;
+    let activeDays = 0;
+    let gentleDaysCount = 0;
+    let energySum = 0;
+    let energyCount = 0;
+    const gratitudes = [];
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayLabel = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
+
+        const checkins = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}');
+        const isGentle = localStorage.getItem(`kairos_gentle_${dateStr}`) === 'true';
+        if (isGentle) gentleDaysCount++;
+
+        let dayDone = 0;
+        userHabits.forEach(h => {
+            const target = isGentle && h.minTarget ? h.minTarget : (h.target || 1);
+            if ((checkins[h.id] || 0) >= target) dayDone++;
+        });
+
+        if (dayDone > 0) {
+            activeDays++;
+            totalDoneSteps += dayDone;
+        }
+
+        const energy = Number(localStorage.getItem(`kairos_energy_${dateStr}`)) || 0;
+        if (energy > 0) {
+            energySum += energy;
+            energyCount++;
+        }
+
+        const reflRaw = localStorage.getItem(`kairos_reflection_${dateStr}`);
+        if (reflRaw) {
+            try {
+                const refl = JSON.parse(reflRaw);
+                if (refl.gratitude && refl.gratitude.trim()) {
+                    gratitudes.push({ date: dayLabel, text: refl.gratitude.trim() });
+                }
+            } catch (e) {}
+        }
+    }
+
+    const avgEnergy = energyCount > 0 ? (energySum / energyCount).toFixed(1) : '—';
+
+    return {
+        totalDoneSteps,
+        activeDays,
+        gentleDaysCount,
+        avgEnergy,
+        gratitudes
+    };
+}
+
+// ───────── МОДАЛЬНОЕ ОКНО: ЗЕРКАЛО НЕДЕЛИ (ИТОГИ 7 ДНЕЙ) ─────────
+function WeeklyMirrorModal({ onClose, name }) {
+    const data = calculateWeeklyMirror();
+    const [weeklyFocus, setWeeklyFocus] = useState(() => localStorage.getItem('kairos_weekly_focus') || '');
+    const [savedFocus, setSavedFocus] = useState(false);
+
+    const handleSaveFocus = () => {
+        if (window.triggerHaptic) window.triggerHaptic([35, 50, 35]);
+        localStorage.setItem('kairos_weekly_focus', weeklyFocus.trim());
+        setSavedFocus(true);
+        setTimeout(() => setSavedFocus(false), 2000);
+    };
+
+    let mentorSummary = '';
+    if (data.activeDays >= 5) {
+        mentorSummary = `${name}, это была неделя высокой верности себе. Ты возвращался к своим ритуалам ${data.activeDays} из 7 дней. Твоя система уже работает на тебя.`;
+    } else if (data.activeDays >= 2) {
+        mentorSummary = `${name}, хорошее живое движение: ${data.activeDays} активных дня и ${data.totalDoneSteps} выполненных шагов. Постоянство важнее идеала — продолжай в своем темпе.`;
+    } else {
+        mentorSummary = `${name}, эта неделя была временем паузы или накопления сил. И это нормально. Новый цикл начинается прямо сейчас — с одного простого шага.`;
+    }
+
+    return (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(6, 8, 10, 0.88)', backdropFilter: 'blur(12px)', zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+            <div style={{ background: 'var(--surface)', width: '100%', maxWidth: '480px', maxHeight: '88vh', overflowY: 'auto', padding: '24px 24px calc(44px + env(safe-area-inset-bottom, 24px)) 24px', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', borderTop: '1px solid var(--stroke)', animation: 'fadeUp 0.3s ease', boxSizing: 'border-box' }} onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent)', fontWeight: 600 }}>🪞 Зеркало недели · 7 дней</span>
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+                </div>
+
+                <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', margin: '0 0 12px 0', fontWeight: 600 }}>Взгляд на твой путь сверху</h2>
+
+                <div style={{ padding: '14px 16px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', borderLeft: '2.5px solid var(--accent)', marginBottom: '18px', fontFamily: 'Cormorant Garamond, serif', fontSize: '18px', lineHeight: 1.4, color: 'var(--text)' }}>
+                    «{mentorSummary}»
+                </div>
+
+                {/* Цифры за 7 дней */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--stroke)', borderRadius: '14px', padding: '12px 8px', textAlign: 'center' }}>
+                        <span style={{ display: 'block', fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', color: 'var(--accent)', lineHeight: 1 }}>{data.activeDays}/7</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Дней в ритме</span>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--stroke)', borderRadius: '14px', padding: '12px 8px', textAlign: 'center' }}>
+                        <span style={{ display: 'block', fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', color: 'var(--text)', lineHeight: 1 }}>{data.totalDoneSteps}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Шагов сделано</span>
+                    </div>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--stroke)', borderRadius: '14px', padding: '12px 8px', textAlign: 'center' }}>
+                        <span style={{ display: 'block', fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', color: 'var(--text)', lineHeight: 1 }}>{data.avgEnergy}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ср. ресурс</span>
+                    </div>
+                </div>
+
+                {data.gentleDaysCount > 0 && (
+                    <div style={{ padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px dashed var(--stroke)', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.45 }}>
+                        🪶 На этой неделе режим <strong>«Бережный минимум»</strong> выручил тебя <strong>{data.gentleDaysCount} раз(а)</strong>, позволив сохранить цепочку без выгорания.
+                    </div>
+                )}
+
+                {/* Копилка благодарностей за неделю */}
+                <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600, marginBottom: '8px' }}>
+                        ✨ Твои поводы для гордости за 7 дней:
+                    </div>
+                    {data.gratitudes.length === 0 ? (
+                        <div style={{ padding: '12px 14px', borderRadius: '14px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--stroke)', fontSize: '12px', color: 'var(--text-muted)' }}>
+                            Заполняй «Вечернюю рефлексию», и здесь соберется твоя личная коллекция маленьких побед за неделю.
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {data.gratitudes.map((item, idx) => (
+                                <div key={idx} style={{ padding: '10px 14px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--stroke)', fontSize: '13px', display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                                    <span>«{item.text}»</span>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{item.date}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Намерение на следующую неделю */}
+                <div style={{ padding: '14px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--stroke)', marginBottom: '18px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600 }}>🧭 Главный фокус на новую неделю</span>
+                        {savedFocus && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>✓ Зафиксировано</span>}
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>Какое одно качество или правило поможет тебе на следующей неделе?</p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                            type="text"
+                            value={weeklyFocus}
+                            onChange={(e) => setWeeklyFocus(e.target.value)}
+                            placeholder="Например: Беречь утренний час от суеты..."
+                            style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '10px', padding: '10px 12px', color: 'var(--text)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' }}
+                        />
+                        <button onClick={handleSaveFocus} style={{ background: 'var(--accent)', color: '#0B0D10', border: 'none', borderRadius: '10px', padding: '0 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                            ОК
+                        </button>
+                    </div>
+                </div>
+
+                <button className="btn-primary" onClick={onClose}>Продолжить путь</button>
+            </div>
+        </div>
+    );
+}
 
 // ───────── МОДАЛЬНОЕ ОКНО: SOS-КАПСУЛА ПОДДЕРЖКИ И ДЫХАНИЕ ─────────
 function SosModal({ onClose, onEnableGentleMode }) {
@@ -651,6 +818,8 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
     const [energyLevel, setEnergyLevel] = useState(() => Number(localStorage.getItem(`kairos_energy_${todayKey}`)) || 0);
     const [toastMessage, setToastMessage] = useState(null);
     const [showSos, setShowSos] = useState(false);
+    const [showMirror, setShowMirror] = useState(false);
+    const isSunday = new Date().getDay() === 0;
 
     const hasReflected = !!localStorage.getItem(`kairos_reflection_${todayKey}`);
 
@@ -771,6 +940,8 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                 <button onClick={() => toggleGentleMode()} style={{ flex: 1, padding: '10px 12px', borderRadius: '14px', border: gentleMode ? '1px solid var(--accent)' : '1px solid var(--stroke)', background: gentleMode ? 'rgba(255,255,255,0.06)' : 'var(--surface)', color: gentleMode ? 'var(--accent)' : 'var(--text-muted)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.25s' }}>
                     <span>{gentleMode ? '🪶 Бережный минимум: ВКЛ' : '⚡ Режим: Обычный шаг'}</span>
                 </button>
+                <button onClick={() => { if (window.triggerHaptic) window.triggerHaptic(25); setShowMirror(true); }} style={{ padding: '10px 12px', borderRadius: '14px', border: isSunday ? '1px solid var(--accent)' : '1px solid var(--stroke)', background: 'var(--surface)', color: isSunday ? 'var(--accent)' : 'var(--text)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span>🪞 7 дн.</span>
                 <button onClick={() => { if (window.triggerHaptic) window.triggerHaptic(25); setShowSos(true); }} style={{ padding: '10px 14px', borderRadius: '14px', border: '1px solid var(--stroke)', background: 'var(--surface)', color: 'var(--text)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🧭 Опора</span>
                 </button>
@@ -846,6 +1017,12 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                     onEnableGentleMode={() => toggleGentleMode(true)}
                 />
             )}
+            {showMirror && (
+                <WeeklyMirrorModal
+                    name={name}
+                    onClose={() => setShowMirror(false)}
+                />
+            )}    
         </div>
     );
 }
