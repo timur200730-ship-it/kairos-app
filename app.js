@@ -27,7 +27,24 @@ const BASE_HABITS_LIST = [
     { id: 'sleep', label: 'Сон вовремя', icon: Icons.Moon, type: 'binary', baseDesc: 'Лечь до 23:00 без экрана', minDesc: 'Отложить телефон в кровати' },
     { id: 'nosocial', label: 'Без соцсетей', icon: Icons.PhoneOff, type: 'binary', baseDesc: 'Утро и вечер без ленты', minDesc: 'Первые 15 минут утра без телефона' },
 ];
-
+<div className="fade-up" style={{ padding: '12px 14px', borderRadius: '14px', background: 'var(--surface)', border: '1px solid var(--stroke)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600 }}>⚓ Якорь запуска (Триггер)</span>
+                    {anchorSaved && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>✓ Сохранено</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                        type="text"
+                        value={anchorText}
+                        onChange={(e) => setAnchorText(e.target.value)}
+                        placeholder="После того как я..."
+                        style={{ flex: 1, background: 'var(--bg)', border: '1px solid var(--stroke)', borderRadius: '10px', padding: '8px 12px', color: 'var(--text)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none' }}
+                    />
+                    <button onClick={handleSaveAnchor} style={{ background: 'var(--accent)', color: '#0B0D10', border: 'none', borderRadius: '10px', padding: '0 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                        ОК
+                    </button>
+                </div>
+            </div>
 // Получение полного списка привычек (включая авторскую привычку пользователя, если она создана)
 function getAllHabitsList() {
     const customRaw = localStorage.getItem('kairos_custom_habit');
