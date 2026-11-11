@@ -782,8 +782,21 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
                                 <div className="habit-row-icon"><habit.icon /></div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <span className="habit-row-title">{habit.label}</span>
+                                    {descText && (ntSize: '11px', color: gentleMode ? 
+                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <span className="habit-row-title">{habit.label}</span>
                                     {descText && (
                                         <span style={{ fontSize: '11px', color: gentleMode ? 'var(--accent)' : 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.2px' }}>
+                                            {gentleMode ? `Минимум: ${descText}` : descText}
+                                        </span>
+                                    )}
+                                    {!isDone && getHabitAnchor(habit.id) && (
+                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', opacity: 0.78, fontStyle: 'italic', marginTop: '1px' }}>
+                                            ⚓ {getHabitAnchor(habit.id)}
+                                        </span>
+                                    )}
+                                </div>     
+                                        <span style={{ fo'var(--accent)' : 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.2px' }}>
                                             {gentleMode ? `Минимум: ${descText}` : descText}
                                         </span>
                                     )}
@@ -823,6 +836,14 @@ function TodayScreen({ name, themeData, onReflect, onOpenHabit }) {
 // ───────── ДЕТАЛИ ПРИВЫЧКИ ─────────
 function HabitDetailsScreen({ habit, onBack }) {
     const [noteDate, setNoteDate] = useState(null);
+    const [anchorText, setAnchorText] = useState(() => getHabitAnchor(habit.id));
+    const [anchorSaved, setAnchorSaved] = useState(false);
+    const handleSaveAnchor = () => {
+        if (window.triggerHaptic) window.triggerHaptic(25);
+        saveHabitAnchor(habit.id, anchorText);
+        setAnchorSaved(true);
+        setTimeout(() => setAnchorSaved(false), 2000);
+    };
     const [noteText, setNoteText] = useState('');
     const freezes = JSON.parse(localStorage.getItem('kairos_freezes') || '[]');
     const days = [];
