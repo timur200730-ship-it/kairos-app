@@ -81,7 +81,7 @@ function InstallPrompt() {
     const [showHint, setShowHint] = useState(false);
     const [isStandalone, setIsStandalone] = useState(false);
 
-    useEffect(() => {
+    (() => {
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
             setIsStandalone(true);
         }
@@ -247,6 +247,7 @@ function SosModal({ onClose, onEnableGentleMode }) {
         const timer = setInterval(() => {
             setBreathSeconds(prev => {
                 if (prev <= 1) {
+                    if (window.kairosAudio) window.kairosAudio.play('breath');
                     if (breathStep === 'inhale') { setBreathStep('hold'); return 4; }
                     if (breathStep === 'hold') { setBreathStep('exhale'); return 6; }
                     if (breathStep === 'exhale') { setBreathStep('inhale'); return 4; }
@@ -1044,6 +1045,13 @@ function ReflectionScreen({ onSave, onBack }) {
 // ───────── ПРОФИЛЬ И НАСТРОЙКИ ─────────
 function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
     const [notifPermission, setNotifPermission] = useState('default');
+    const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('kairos_sound') !== 'off');
+    const toggleSound = () => {
+        const next = !soundEnabled;
+        setSoundEnabled(next);
+        localStorage.setItem('kairos_sound', next ? 'on' : 'off');
+        if (next && window.kairosAudio) window.kairosAudio.play('success');
+    };
     const fileInputRef = useRef(null);
     const stats = calculateStats();
     const initial = name ? name.charAt(0).toUpperCase() : 'K';
@@ -1149,6 +1157,12 @@ function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
                         <div style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }}><Icons.Bell /></div>
                         <span>Напоминания ({localStorage.getItem('kairos_time') || '09:00'})</span>
                     </div>
+                    <div className="settings-row" onClick={toggleSound}>
+                    <span>Звуковой отклик (Атмосфера)</span>
+                    <span style={{ color: soundEnabled ? 'var(--accent)' : 'var(--text-muted)' }}>
+                        {soundEnabled ? 'Включен' : 'Выключен'}
+                    </span>
+                </div>    
                     <span style={{ color: notifPermission === 'granted' ? 'var(--accent)' : 'var(--text-muted)' }}>
                         {notifPermission === 'granted' ? 'Включены' : 'Включить'}
                     </span>
