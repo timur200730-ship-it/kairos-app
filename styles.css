@@ -127,6 +127,10 @@ body {
     width: 100%;
     flex-shrink: 0;
 }
+/* Запрещаем flex-контейнеру сплющивать любые карточки на маленьких экранах телефонов */
+.content > * {
+    flex-shrink: 0;
+}
 
 .btn-primary:active {
     transform: scale(0.97);
