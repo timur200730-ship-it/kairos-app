@@ -213,7 +213,59 @@ function calculateStats() {
             else totalCheckins += Object.values(val).filter(v => v >= 1).length;
         }
     }
+// Анализ связи между привычками и уровнем энергии/настроения за 30 дней
+function calculateEnergyInsight(habitId = null) {
+    const allHabits = getAllHabitsList();
+    const userHabitsIds = JSON.parse(localStorage.getItem('kairos_habits') || '[]');
+    const targetHabits = habitId ? allHabits.filter(h => h.id === habitId) : allHabits.filter(h => userHabitsIds.includes(h.id));
 
+    let bestHabit = null;
+    let bestDiff = -99;
+
+    targetHabits.forEach(habit => {
+        let withHabitSum = 0, withHabitCount = 0;
+        let withoutHabitSum = 0, withoutHabitCount = 0;
+
+        for (let i = 0; i < 30; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            const energy = Number(localStorage.getItem(`kairos_energy_${dateStr}`)) || 0;
+            const reflRaw = localStorage.getItem(`kairos_reflection_${dateStr}`);
+            const mood = reflRaw ? (JSON.parse(reflRaw).mood || 0) : 0;
+            const dayScore = energy > 0 && mood > 0 ? (energy + mood) / 2 : (energy || mood);
+
+            if (dayScore > 0) {
+                const checkins = JSON.parse(localStorage.getItem(`kairos_checkins_${dateStr}`) || '{}');
+                const isGentle = localStorage.getItem(`kairos_gentle_${dateStr}`) === 'true';
+                const target = isGentle && habit.minTarget ? habit.minTarget : (habit.target || 1);
+                const isDone = (checkins[habit.id] || 0) >= target;
+
+                if (isDone) {
+                    withHabitSum += dayScore;
+                    withHabitCount++;
+                } else {
+                    withoutHabitSum += dayScore;
+                    withoutHabitCount++;
+                }
+            }
+        }
+
+        const avgWith = withHabitCount > 0 ? +(withHabitSum / withHabitCount).toFixed(1) : null;
+        const avgWithout = withoutHabitCount > 0 ? +(withoutHabitSum / withoutHabitCount).toFixed(1) : null;
+        const diff = (avgWith !== null && avgWithout !== null) ? +(avgWith - avgWithout).toFixed(1) : 0;
+
+        if (habitId && habit.id === habitId) {
+            bestHabit = { habit, avgWith, avgWithout, withHabitCount, diff };
+        } else if (avgWith !== null && diff >= bestDiff) {
+            bestDiff = diff;
+            bestHabit = { habit, avgWith, avgWithout, withHabitCount, diff };
+        }
+    });
+
+    return bestHabit;
+}
     let checkDate = new Date();
     const todayStr = getTodayKey();
     while (true) {
