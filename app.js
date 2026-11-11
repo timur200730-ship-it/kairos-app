@@ -196,7 +196,27 @@ function getTodayCheckins() {
 function saveTodayCheckins(data) {
     localStorage.setItem(`kairos_checkins_${getTodayKey()}`, JSON.stringify(data));
 }
+const DEFAULT_ANCHORS = {
+    exercise: 'Сразу после пробуждения и стакана воды',
+    reading: 'После того как налью утренний чай/кофе или перед сном',
+    meditation: 'После утреннего умывания в тишине',
+    water: 'Каждый раз, когда сажусь за стол или открываю телефон',
+    walk: 'После завершения основной работы / учёбы',
+    journal: 'Вечером, когда закрою рабочие задачи',
+    sleep: 'После сигнала вечернего будильника в 22:30',
+    nosocial: 'Сразу после пробуждения (телефон на полке)'
+};
 
+function getHabitAnchor(habitId) {
+    const saved = JSON.parse(localStorage.getItem('kairos_anchors') || '{}');
+    return saved[habitId] !== undefined ? saved[habitId] : (DEFAULT_ANCHORS[habitId] || 'После привычного утреннего ритуала');
+}
+
+function saveHabitAnchor(habitId, text) {
+    const saved = JSON.parse(localStorage.getItem('kairos_anchors') || '{}');
+    saved[habitId] = text.trim();
+    localStorage.setItem('kairos_anchors', JSON.stringify(saved));
+}
 // Умный подсчет статистики с учетом «Заморозок» (kairos_freezes)
 function calculateStats() {
     let totalCheckins = 0;
