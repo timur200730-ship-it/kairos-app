@@ -869,7 +869,27 @@ function HabitDetailsScreen({ habit, onBack }) {
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>За 30 дней</span>
                 </div>
             </div>
-
+            {(() => {
+                const insight = calculateEnergyInsight(habit.id);
+                if (!insight || insight.avgWith === null) {
+                    return (
+                        <div className="fade-up" style={{ padding: '14px 16px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px dashed var(--stroke)', marginBottom: '24px', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                            <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '4px' }}>⚡ Связь с твоей энергией</strong>
+                            Отмечай «Заряд сил» на главном экране и выполняй привычку — через пару дней я покажу, как «{habit.label}» влияет на твоё самочувствие.
+                        </div>
+                    );
+                }
+                return (
+                    <div className="fade-up" style={{ padding: '14px 16px', borderRadius: '16px', background: 'var(--surface)', border: '1px solid var(--stroke)', borderLeft: '2.5px solid var(--accent)', marginBottom: '24px', fontSize: '13px', lineHeight: 1.5 }}>
+                        <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--accent)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>⚡ Инсайт наставника</span>
+                        {insight.avgWithout !== null && insight.diff > 0 ? (
+                            <span>В дни, когда ты выполняешь «{habit.label}», твой средний уровень ресурса — <strong>{insight.avgWith} из 5</strong> (без неё — {insight.avgWithout}). Привычка дает тебе <strong>+{Math.round((insight.diff / 5) * 100)}% к энергии</strong>.</span>
+                        ) : (
+                            <span>В дни выполнения этой привычки твой средний уровень энергии и состояния держится на отметке <strong>{insight.avgWith} из 5</strong>.</span>
+                        )}
+                    </div>
+                );
+            })()}
             <p className="subtitle fade-up" style={{ marginBottom: '16px' }}>Нажми на день в календаре, чтобы оставить заметку или инсайт:</p>
             <div className="calendar-grid fade-up" style={{ animationDelay: '0.1s', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
                 {days.map(day => (
