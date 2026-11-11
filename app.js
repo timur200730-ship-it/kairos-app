@@ -1206,7 +1206,16 @@ function ProfileScreen({ name, theme, setTheme, onEditHabits }) {
                 <div className="stat-item"><span className="stat-value">{stats.totalCheckins}</span><span className="stat-label">Шагов</span></div>
                 <div className="stat-item"><span className="stat-value">{stats.completedChallenges}</span><span className="stat-label">Путей</span></div>
             </div>
-
+            {(() => {
+                const topInsight = calculateEnergyInsight();
+                if (!topInsight || topInsight.avgWith === null) return null;
+                return (
+                    <div className="fade-up" style={{ animationDelay: '0.15s', padding: '16px 18px', borderRadius: '18px', background: 'var(--surface)', border: '1px solid var(--stroke)', borderLeft: '2.5px solid var(--accent)', marginBottom: '24px', fontSize: '13px', lineHeight: 1.5 }}>
+                        <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.2px', color: 'var(--accent)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>✧ Твой главный источник энергии</span>
+                        <span>Привычка <strong>«{topInsight.habit.label}»</strong> лучше всего поддерживает твой тонус: средний уровень состояния в дни выполнения — <strong>{topInsight.avgWith} из 5</strong>.</span>
+                    </div>
+                );
+            })()}
             <div className="fade-up settings-list" style={{ animationDelay: '0.2s' }}>
                 <div className="settings-header">Настройки пространства</div>
 
