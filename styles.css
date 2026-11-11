@@ -660,6 +660,11 @@ body {
     border: 1px solid var(--stroke);
     border-radius: 20px;
     overflow: hidden;
+    flex-shrink: 0; /* Запрещает телефону сжимать и обрезать меню настроек! */
+}
+/* Запрещаем flex-контейнеру сплющивать любые карточки на маленьких экранах телефонов */
+.content > * {
+    flex-shrink: 0;
 }
 
 .settings-header {
