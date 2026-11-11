@@ -207,18 +207,20 @@
                             osc.stop(start + 0.7);
                         });
                     } else if (type === 'breath') {
-                        // Спокойный глубокий тон для смены фазы дыхания (4-4-6)
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(432, now);
-                        gain.gain.setValueAtTime(0.001, now);
-                        gain.gain.linearRampToValueAtTime(0.05, now + 0.15);
-                        gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.2);
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start(now);
-                        osc.stop(now + 1.25);
+                        // Мягкий поющий тон при смене фазы дыхания (хорошо слышен на динамике iPhone)
+                        [440, 660].forEach((freq) => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(freq, now);
+                            gain.gain.setValueAtTime(0.001, now);
+                            gain.gain.linearRampToValueAtTime(0.09, now + 0.08);
+                            gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.9);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.95);
+                        });
                     }
                 } catch (e) {}
             }
