@@ -259,7 +259,7 @@ function SosModal({ onClose, onEnableGentleMode }) {
     }, [breathStep]);
 
     const startBreathing = () => {
-        if (window.triggerHaptic) window.triggerHaptic([40, 60, 40]);
+        if (window.kairosAudio) window.kairosAudio.play('breath');
         setBreathStep('inhale');
         setBreathSeconds(4);
     };
