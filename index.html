@@ -154,18 +154,91 @@
         </div>
     </div>
     
-    <!-- Вспомогательный скрипт: глобальные утилиты тактильного отклика и перехват PWA-установки -->
+    <!-- Вспомогательный скрипт: синтезатор живого звука (Web Audio API), тактильный отклик и PWA -->
     <script>
-        // Глобальная функция мягкого тактильного отклика для мобильных устройств
-        window.triggerHaptic = function(pattern = 35) {
-            if (window.navigator && window.navigator.vibrate) {
+        window.kairosAudio = {
+            ctx: null,
+            init: function() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            isEnabled: function() {
+                return localStorage.getItem('kairos_sound') !== 'off';
+            },
+            play: function(type = 'tap') {
+                if (!this.isEnabled()) return;
                 try {
-                    window.navigator.vibrate(pattern);
+                    this.init();
+                    if (!this.ctx) return;
+                    const now = this.ctx.currentTime;
+
+                    if (type === 'tap') {
+                        // Мягкий бархатный микро-отклик при касании кнопок
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(320, now);
+                        osc.frequency.exponentialRampToValueAtTime(140, now + 0.045);
+                        gain.gain.setValueAtTime(0.06, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.05);
+                    } else if (type === 'success') {
+                        // Благородное созвучие (эффект поющей чаши) при выполнении привычки
+                        [528, 660].forEach((freq, idx) => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'sine';
+                            const start = now + idx * 0.07;
+                            osc.frequency.setValueAtTime(freq, start);
+                            gain.gain.setValueAtTime(0.001, start);
+                            gain.gain.linearRampToValueAtTime(0.08, start + 0.02);
+                            gain.gain.exponentialRampToValueAtTime(0.0008, start + 0.65);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(start);
+                            osc.stop(start + 0.7);
+                        });
+                    } else if (type === 'breath') {
+                        // Спокойный глубокий тон для смены фазы дыхания (4-4-6)
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(432, now);
+                        gain.gain.setValueAtTime(0.001, now);
+                        gain.gain.linearRampToValueAtTime(0.05, now + 0.15);
+                        gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 1.25);
+                    }
                 } catch (e) {}
             }
         };
 
-        // Сохраняем событие установки PWA, чтобы вызвать его по кнопке внутри интерфейса
+        // Глобальная функция отклика: работает и на Android (вибрация), и на iPhone (живой звук)
+        window.triggerHaptic = function(pattern = 35) {
+            if (window.navigator && window.navigator.vibrate) {
+                try { window.navigator.vibrate(pattern); } catch (e) {}
+            }
+            if (window.kairosAudio) {
+                if (Array.isArray(pattern)) {
+                    window.kairosAudio.play('success');
+                } else {
+                    window.kairosAudio.play('tap');
+                }
+            }
+        };
+
+        // Сохраняем событие установки PWA
         window.deferredInstallPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
